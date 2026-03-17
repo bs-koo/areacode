@@ -27,6 +27,9 @@
     <button class="nav-btn" data-target="section-convert">
       <span class="num">3</span>지역코드 변환
     </button>
+    <button class="nav-btn" data-target="section-bjd">
+      <span class="num">4</span>법정동 검색
+    </button>
   </div>
 </nav>
 
@@ -112,6 +115,28 @@
     </div>
   </section>
 
+  <!-- ===== 섹션 4: 법정동 검색 ===== -->
+  <section id="section-bjd" class="section">
+    <div class="section-heading">
+      <h2>법정동 검색</h2>
+      <p>전국 법정동코드를 검색합니다. 시도명, 시군구명, 읍면동명, 리명으로 검색할 수 있습니다.</p>
+    </div>
+    <div class="query-form">
+      <div class="form-group">
+        <label for="bjd-keyword">검색어</label>
+        <input type="text" id="bjd-keyword" class="form-control" placeholder="시도명, 시군구명, 읍면동명, 리명">
+      </div>
+      <div class="form-group bjd-checkbox-group">
+        <label>&nbsp;</label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="bjd-include-abolished"> 폐지 포함
+        </label>
+      </div>
+      <button class="query-btn" id="bjd-search-btn">검색</button>
+    </div>
+    <div class="result-container" id="bjd-result"></div>
+  </section>
+
 </main>
 
 <footer class="site-footer">
@@ -119,6 +144,7 @@
 </footer>
 
 <script src="js/data.js"></script>
+<script src="js/bjd.js"></script>
 <script src="js/codegen.js"></script>
 <script src="js/app.js"></script>
 </body>

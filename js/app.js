@@ -410,6 +410,113 @@ function copyCode() {
   });
 }
 
+// ---- 섹션 4: 법정동 검색 ----
+function initBjdSection() {
+  const keywordInput = document.getElementById('bjd-keyword');
+  const searchBtn = document.getElementById('bjd-search-btn');
+  const checkbox = document.getElementById('bjd-include-abolished');
+  const resultDiv = document.getElementById('bjd-result');
+
+  searchBtn.addEventListener('click', () => searchBjd(keywordInput, checkbox, resultDiv));
+  keywordInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') searchBjd(keywordInput, checkbox, resultDiv);
+  });
+}
+
+function normalize(str) {
+  return str.toLowerCase().replace(/[\uFF01-\uFF5E]/g, ch =>
+    String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)
+  );
+}
+
+function searchBjd(keywordInput, checkbox, resultDiv) {
+  const keyword = keywordInput.value.trim();
+  if (!keyword) {
+    showError(resultDiv, '검색어를 입력하세요.');
+    return;
+  }
+
+  const normalizedKeyword = normalize(keyword);
+  const includeAbolished = checkbox.checked;
+
+  const filtered = BJD_DATA.filter(row => {
+    // 폐지 필터: 삭제일자가 비어있지 않으면 폐지된 항목
+    if (!includeAbolished && row[5] !== '') return false;
+    // 시도명(1), 시군구명(2), 읍면동명(3), 리명(4) 부분일치
+    const target = normalize(row[1] + row[2] + row[3] + row[4]);
+    return target.includes(normalizedKeyword);
+  });
+
+  if (filtered.length === 0) {
+    showError(resultDiv, '검색 결과가 없습니다.');
+    return;
+  }
+
+  renderBjdResult(resultDiv, filtered, keyword);
+}
+
+function highlightMatch(text, keyword) {
+  // HTML escape 먼저
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  if (!keyword) return escaped;
+
+  const normalizedEscaped = normalize(escaped);
+  const normalizedKeyword = normalize(keyword);
+
+  let result = '';
+  let i = 0;
+  while (i < escaped.length) {
+    const pos = normalizedEscaped.indexOf(normalizedKeyword, i);
+    if (pos === -1) {
+      result += escaped.substring(i);
+      break;
+    }
+    result += escaped.substring(i, pos);
+    result += '<mark>' + escaped.substring(pos, pos + normalizedKeyword.length) + '</mark>';
+    i = pos + normalizedKeyword.length;
+  }
+
+  return result;
+}
+
+function renderBjdResult(resultDiv, filtered, keyword) {
+  const totalCount = filtered.length;
+  let displayData = filtered;
+  let warningHtml = '';
+
+  if (totalCount > 500) {
+    warningHtml = '<div class="warning-msg">500건만 표시됩니다. 검색어를 구체화하세요.</div>';
+    displayData = filtered.slice(0, 500);
+  }
+
+  const rows = displayData.map(row => {
+    const status = row[5] === '' ? '현존' : '폐지';
+    const rowClass = row[5] !== '' ? ' class="row-abolished"' : '';
+    return '<tr' + rowClass + '>' +
+      '<td><code>' + row[0] + '</code></td>' +
+      '<td>' + highlightMatch(row[1], keyword) + '</td>' +
+      '<td>' + highlightMatch(row[2], keyword) + '</td>' +
+      '<td>' + highlightMatch(row[3], keyword) + '</td>' +
+      '<td>' + highlightMatch(row[4], keyword) + '</td>' +
+      '<td>' + status + '</td>' +
+      '</tr>';
+  }).join('');
+
+  resultDiv.innerHTML =
+    '<div class="result-header"><strong>' + totalCount + '건 검색됨</strong></div>' +
+    warningHtml +
+    '<div class="table-wrap">' +
+      '<table class="data-table">' +
+        '<thead><tr><th>법정동코드</th><th>시도명</th><th>시군구명</th><th>읍면동명</th><th>리명</th><th>상태</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table>' +
+    '</div>';
+}
+
 // ---- 공통 유틸 ----
 function formatYM(yyyymm) {
   return yyyymm.substring(0, 4) + '년 ' + yyyymm.substring(4, 6) + '월';
@@ -425,4 +532,5 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTimeline();
   initSidoSection();
   initConvertSection();
+  initBjdSection();
 });

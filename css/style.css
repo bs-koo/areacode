@@ -749,6 +749,38 @@ main.main-content { flex: 1; }
   .data-table td { padding: 8px 10px; }
 }
 
+/* ---- 법정동 검색 ---- */
+.warning-msg {
+  padding: 14px 18px;
+  background: var(--warning-light);
+  color: var(--warning);
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid #fcd34d;
+  font-size: .875rem;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.bjd-checkbox-group {
+  min-width: 120px;
+  flex: 0 0 auto;
+}
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .88rem;
+  color: var(--gray-700);
+  cursor: pointer;
+  height: 100%;
+  padding-top: 4px;
+}
+.data-table mark {
+  background: #fef08a;
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
 @media (max-width: 400px) {
   .site-header h1 { font-size: 1.15rem; }
   .nav-btn { padding: 8px 10px; font-size: .78rem; }
