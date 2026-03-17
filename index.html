@@ -55,12 +55,14 @@
         <label for="sido-yyyymm">기준년월 (YYYYMM)</label>
         <input type="text" id="sido-yyyymm" class="form-control" placeholder="예: 202401" maxlength="6">
       </div>
+      <div class="form-group search-group">
+        <label for="sido-search">지역 검색</label>
+        <div class="search-box-inline">
+          <input type="text" id="sido-search" class="form-control search-input" placeholder="시도코드 또는 시도명">
+          <span class="search-icon">&#128269;</span>
+        </div>
+      </div>
       <button class="query-btn" id="sido-query-btn">조회</button>
-    </div>
-
-    <div class="search-box">
-      <input type="text" id="sido-search" class="form-control search-input" placeholder="시도코드 또는 시도명 검색">
-      <span class="search-icon">&#128269;</span>
     </div>
 
     <div class="result-container" id="sido-result"></div>
@@ -113,7 +115,7 @@
 </main>
 
 <footer class="site-footer">
-  <p>데이터랩 팀 | 행정안전부 공식 데이터 기반 | 2026</p>
+  <p>GX 사업본부 데이터플랫폼부 | 행정안전부 공식 데이터 기반 | 2026</p>
 </footer>
 
 <script src="js/data.js"></script>

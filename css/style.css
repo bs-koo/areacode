@@ -49,7 +49,10 @@ body {
   color: var(--gray-800);
   background: linear-gradient(180deg, var(--gray-50) 0%, #eef2f7 100%);
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
+main.main-content { flex: 1; }
 
 /* ---- 헤더 ---- */
 .site-header {
@@ -345,15 +348,15 @@ body {
 }
 
 /* ---- 검색 박스 (섹션 2) ---- */
-.search-box {
+.search-group { min-width: 160px; }
+.search-box-inline {
   position: relative;
-  margin-bottom: 20px;
-  max-width: 400px;
 }
-.search-box .search-input {
+.search-box-inline .search-input {
   padding-left: 38px;
+  width: 100%;
 }
-.search-box .search-icon {
+.search-box-inline .search-icon {
   position: absolute;
   left: 12px;
   top: 50%;
@@ -730,7 +733,7 @@ body {
   }
   .convert-sep { display: none; }
 
-  .search-box { max-width: 100%; }
+  .search-group { min-width: 100%; }
 
   .code-gen-header {
     flex-direction: column;
