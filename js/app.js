@@ -69,51 +69,51 @@ function initSidoSection() {
   const defaultYM = String(now.getFullYear()) + String(now.getMonth() + 1).padStart(2, '0');
   input.value = defaultYM;
 
+  const searchInput = document.getElementById('sido-search');
+
   btn.addEventListener('click', () => {
     querySido(input, resultDiv);
-    initSidoSearch();
+    applySidoFilter();
   });
   input.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       querySido(input, resultDiv);
-      initSidoSearch();
+      applySidoFilter();
     }
   });
+  if (searchInput) {
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        querySido(input, resultDiv);
+        applySidoFilter();
+      }
+    });
+  }
 
   // 초기 렌더링
   querySido(input, resultDiv);
-  initSidoSearch();
 }
 
-// ---- FR-10: 시도코드↔시도명 양방향 검색 ----
-let _sidoSearchBound = false;
-
-function initSidoSearch() {
+// ---- FR-10: 시도코드↔시도명 검색 (조회 버튼 클릭 시 함께 적용) ----
+function applySidoFilter() {
   const searchInput = document.getElementById('sido-search');
   if (!searchInput) return;
 
-  // 이벤트 리스너 중복 등록 방지
-  if (_sidoSearchBound) return;
-  _sidoSearchBound = true;
+  const keyword = searchInput.value.trim().toLowerCase();
+  const rows = document.querySelectorAll('#sido-result .data-table tbody tr');
+  let visibleCount = 0;
+  let totalCount = 0;
 
-  searchInput.addEventListener('input', () => {
-    const keyword = searchInput.value.trim().toLowerCase();
-    const rows = document.querySelectorAll('#sido-result .data-table tbody tr');
-    let visibleCount = 0;
-    let totalCount = 0;
-
-    rows.forEach(row => {
-      totalCount++;
-      const code = row.cells[0]?.textContent || '';
-      const name = row.cells[1]?.textContent || '';
-      const match = !keyword || code.includes(keyword) || name.toLowerCase().includes(keyword);
-      row.style.display = match ? '' : 'none';
-      if (match) visibleCount++;
-    });
-
-    // 결과 카운트 업데이트
-    updateSidoFilterCount(totalCount, visibleCount, keyword);
+  rows.forEach(row => {
+    totalCount++;
+    const code = row.cells[0]?.textContent || '';
+    const name = row.cells[1]?.textContent || '';
+    const match = !keyword || code.includes(keyword) || name.toLowerCase().includes(keyword);
+    row.style.display = match ? '' : 'none';
+    if (match) visibleCount++;
   });
+
+  updateSidoFilterCount(totalCount, visibleCount, keyword);
 }
 
 function updateSidoFilterCount(total, visible, keyword) {
@@ -186,11 +186,8 @@ function querySido(input, resultDiv) {
       <span class="legend-item abolished">폐지</span>
     </div>`;
 
-  // 검색 필터가 유지되도록 기존 검색어로 다시 필터링
-  const searchInput = document.getElementById('sido-search');
-  if (searchInput && searchInput.value.trim()) {
-    searchInput.dispatchEvent(new Event('input'));
-  }
+  // 조회 후 검색 필터 적용
+  applySidoFilter();
 }
 
 function getPrevYM(yyyymm) {
