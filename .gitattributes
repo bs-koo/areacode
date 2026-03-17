@@ -1,0 +1,11 @@
+* text=auto
+
+# Keep source/document text files consistent across OS
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+
+# Keep Git metadata files in LF as well
+*.gitignore text eol=lf
+*.gitattributes text eol=lf

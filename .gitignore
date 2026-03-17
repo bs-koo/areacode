@@ -1,0 +1,7 @@
+# JetBrains IDE files
+.idea/
+
+# Local tool state
+.omc/
+
+requirements/
