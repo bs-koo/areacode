@@ -17,7 +17,7 @@ const lines = raw.split(/\r?\n/).filter(l => l.trim() !== '');
 
 // 헤더 스킵, 데이터 행 파싱
 // CSV 컬럼: 법정동코드(0), 시도명(1), 시군구명(2), 읍면동명(3), 리명(4), 순위(5), 생성일자(6), 삭제일자(7), 과거법정동코드(8)
-// 추출: [코드, 시도명, 시군구명, 읍면동명, 리명, 삭제일자]
+// 추출: [코드, 시도명, 시군구명, 읍면동명, 리명, 삭제일자, 생성일자, 과거법정동코드]
 const rows = [];
 for (let i = 1; i < lines.length; i++) {
   const cols = lines[i].split(',');
@@ -28,9 +28,11 @@ for (let i = 1; i < lines.length; i++) {
   const sigungu = cols[2].trim();
   const eupmyeondong = cols[3].trim();
   const ri = cols[4].trim();
+  const createdDate = cols[6].trim();
   const deletedDate = cols[7].trim();
+  const prevCode = (cols[8] || '').trim();
 
-  rows.push([code, sido, sigungu, eupmyeondong, ri, deletedDate]);
+  rows.push([code, sido, sigungu, eupmyeondong, ri, deletedDate, createdDate, prevCode]);
 }
 
 // JS 파일 출력
@@ -39,7 +41,7 @@ const jsRows = rows.map(r =>
 ).join(',\n  ');
 
 const output = `// 국토교통부 전국 법정동 데이터 (자동 생성 - scripts/csv-to-js.js)
-// 컬럼: [법정동코드, 시도명, 시군구명, 읍면동명, 리명, 삭제일자]
+// 컬럼: [법정동코드, 시도명, 시군구명, 읍면동명, 리명, 삭제일자, 생성일자, 과거법정동코드]
 const BJD_DATA = [
   ${jsRows}
 ];
