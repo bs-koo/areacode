@@ -379,6 +379,8 @@ main.main-content { flex: 1; }
   gap: 14px;
   align-items: flex-end;
   flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
 }
 .form-group {
   display: flex;
