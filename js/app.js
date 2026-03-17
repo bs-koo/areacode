@@ -304,9 +304,32 @@ function runConvert(fromInput, toInput) {
 }
 
 function getEventMappings(ev) {
-  // 시도 레벨 변경이면 시군구 매핑 반환
+  // FR-11: displayLevel 기반 코드 자릿수 조정
+  // 시도 승격: 시도코드 2자리만 표시
+  if (ev.displayLevel === 'sido' && ev.sidoMapping) {
+    return ev.sidoMapping;
+  }
+  // 시군구 편입/신설: 시군구코드 5자리만 표시 (중복 제거)
+  if (ev.displayLevel === 'sigungu') {
+    const mapping = ev.sigunguMapping || ev.admMapping || [];
+    const seen = new Map();
+    mapping.forEach(m => {
+      const beforeCode5 = m.before.substring(0, 5);
+      const afterCode5 = m.after.substring(0, 5);
+      const key = beforeCode5 + '\u2192' + afterCode5;
+      if (!seen.has(key)) {
+        seen.set(key, {
+          before: beforeCode5,
+          beforeName: m.gu ? (ev.parentName || m.beforeName) : m.beforeName,
+          after: afterCode5,
+          afterName: m.gu ? ((ev.parentName || '') + ' ' + m.gu).trim() : m.afterName
+        });
+      }
+    });
+    return Array.from(seen.values());
+  }
+  // 기본: 기존 로직
   if (ev.sigunguMapping) return ev.sigunguMapping;
-  // 행정동 레벨만 있으면 admMapping 반환
   if (ev.admMapping) return ev.admMapping;
   return [];
 }
