@@ -411,6 +411,11 @@ function copyCode() {
 }
 
 // ---- 섹션 4: 법정동 검색 ----
+let bjdCurrentPage = 1;
+let bjdPageSize = 50;
+let bjdFilteredData = [];
+let bjdKeyword = '';
+
 function initBjdSection() {
   const keywordInput = document.getElementById('bjd-keyword');
   const searchBtn = document.getElementById('bjd-search-btn');
@@ -450,11 +455,15 @@ function searchBjd(keywordInput, checkbox, resultDiv) {
   });
 
   if (filtered.length === 0) {
+    bjdFilteredData = [];
     showError(resultDiv, '검색 결과가 없습니다.');
     return;
   }
 
-  renderBjdResult(resultDiv, filtered, keyword);
+  bjdFilteredData = filtered;
+  bjdKeyword = keyword;
+  bjdCurrentPage = 1;
+  renderBjdPage(resultDiv);
 }
 
 function highlightMatch(text, keyword) {
@@ -485,38 +494,85 @@ function highlightMatch(text, keyword) {
   return result;
 }
 
-function renderBjdResult(resultDiv, filtered, keyword) {
-  const totalCount = filtered.length;
-  let displayData = filtered;
-  let warningHtml = '';
+function renderBjdPage(resultDiv) {
+  const totalCount = bjdFilteredData.length;
+  const totalPages = Math.ceil(totalCount / bjdPageSize);
+  if (bjdCurrentPage > totalPages) bjdCurrentPage = totalPages;
+  if (bjdCurrentPage < 1) bjdCurrentPage = 1;
 
-  if (totalCount > 500) {
-    warningHtml = '<div class="warning-msg">500건만 표시됩니다. 검색어를 구체화하세요.</div>';
-    displayData = filtered.slice(0, 500);
-  }
+  const startIdx = (bjdCurrentPage - 1) * bjdPageSize;
+  const endIdx = Math.min(startIdx + bjdPageSize, totalCount);
+  const pageData = bjdFilteredData.slice(startIdx, endIdx);
 
-  const rows = displayData.map(row => {
+  const rows = pageData.map(row => {
     const status = row[5] === '' ? '현존' : '폐지';
     const rowClass = row[5] !== '' ? ' class="row-abolished"' : '';
     return '<tr' + rowClass + '>' +
       '<td><code>' + row[0] + '</code></td>' +
-      '<td>' + highlightMatch(row[1], keyword) + '</td>' +
-      '<td>' + highlightMatch(row[2], keyword) + '</td>' +
-      '<td>' + highlightMatch(row[3], keyword) + '</td>' +
-      '<td>' + highlightMatch(row[4], keyword) + '</td>' +
+      '<td>' + highlightMatch(row[1], bjdKeyword) + '</td>' +
+      '<td>' + highlightMatch(row[2], bjdKeyword) + '</td>' +
+      '<td>' + highlightMatch(row[3], bjdKeyword) + '</td>' +
+      '<td>' + highlightMatch(row[4], bjdKeyword) + '</td>' +
       '<td>' + status + '</td>' +
       '</tr>';
   }).join('');
 
+  // 페이징 컨트롤 HTML
+  let paginationHtml = '';
+  if (totalCount > 0) {
+    const showNav = totalPages > 1;
+    const isFirst = bjdCurrentPage === 1;
+    const isLast = bjdCurrentPage === totalPages;
+
+    paginationHtml = '<div class="bjd-pagination">' +
+      '<div class="bjd-pagination-info">' +
+        '<span>총 <strong>' + totalCount + '</strong>건</span>' +
+        '<select class="bjd-page-size-select" id="bjd-page-size">' +
+          '<option value="50"' + (bjdPageSize === 50 ? ' selected' : '') + '>50건</option>' +
+          '<option value="100"' + (bjdPageSize === 100 ? ' selected' : '') + '>100건</option>' +
+        '</select>' +
+      '</div>' +
+      (showNav ? '<div class="bjd-pagination-nav">' +
+        '<button class="bjd-page-btn" data-action="first"' + (isFirst ? ' disabled' : '') + '>&laquo;</button>' +
+        '<button class="bjd-page-btn" data-action="prev"' + (isFirst ? ' disabled' : '') + '>&lsaquo;</button>' +
+        '<span class="bjd-page-indicator">' + bjdCurrentPage + ' / ' + totalPages + '</span>' +
+        '<button class="bjd-page-btn" data-action="next"' + (isLast ? ' disabled' : '') + '>&rsaquo;</button>' +
+        '<button class="bjd-page-btn" data-action="last"' + (isLast ? ' disabled' : '') + '>&raquo;</button>' +
+      '</div>' : '') +
+    '</div>';
+  }
+
   resultDiv.innerHTML =
     '<div class="result-header"><strong>' + totalCount + '건 검색됨</strong></div>' +
-    warningHtml +
     '<div class="table-wrap">' +
       '<table class="data-table">' +
         '<thead><tr><th>법정동코드</th><th>시도명</th><th>시군구명</th><th>읍면동명</th><th>리명</th><th>상태</th></tr></thead>' +
         '<tbody>' + rows + '</tbody>' +
       '</table>' +
-    '</div>';
+    '</div>' +
+    paginationHtml;
+
+  // 이벤트 바인딩: 페이지 크기 변경
+  const pageSizeSelect = document.getElementById('bjd-page-size');
+  if (pageSizeSelect) {
+    pageSizeSelect.addEventListener('change', e => {
+      bjdPageSize = parseInt(e.target.value, 10);
+      bjdCurrentPage = 1;
+      renderBjdPage(resultDiv);
+    });
+  }
+
+  // 이벤트 바인딩: 네비게이션 버튼
+  resultDiv.querySelectorAll('.bjd-page-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      if (action === 'first') bjdCurrentPage = 1;
+      else if (action === 'prev') bjdCurrentPage = Math.max(1, bjdCurrentPage - 1);
+      else if (action === 'next') bjdCurrentPage = Math.min(totalPages, bjdCurrentPage + 1);
+      else if (action === 'last') bjdCurrentPage = totalPages;
+      renderBjdPage(resultDiv);
+    });
+  });
 }
 
 // ---- 공통 유틸 ----
