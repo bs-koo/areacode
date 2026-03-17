@@ -442,9 +442,11 @@ function searchBjd(keywordInput, checkbox, resultDiv) {
   const filtered = BJD_DATA.filter(row => {
     // 폐지 필터: 삭제일자가 비어있지 않으면 폐지된 항목
     if (!includeAbolished && row[5] !== '') return false;
-    // 시도명(1), 시군구명(2), 읍면동명(3), 리명(4) 부분일치
-    const target = normalize(row[1] + row[2] + row[3] + row[4]);
-    return target.includes(normalizedKeyword);
+    // 시도명(1), 시군구명(2), 읍면동명(3), 리명(4) 개별 부분일치
+    return normalize(row[1]).includes(normalizedKeyword) ||
+           normalize(row[2]).includes(normalizedKeyword) ||
+           normalize(row[3]).includes(normalizedKeyword) ||
+           normalize(row[4]).includes(normalizedKeyword);
   });
 
   if (filtered.length === 0) {
