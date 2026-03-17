@@ -257,13 +257,15 @@ function runConvert(fromInput, toInput) {
   }
 
   // 이벤트별 매핑 테이블 렌더링
-  let allMappings = [];
+  let allMappings = [];       // 화면 표시용 (압축)
+  let allCodegenMappings = []; // 변환 코드 생성용 (전체)
   let titleParts = [];
   let html = '';
 
   events.forEach(ev => {
     const mappings = getEventMappings(ev);
     allMappings = allMappings.concat(mappings);
+    allCodegenMappings = allCodegenMappings.concat(getCodegenMappings(ev));
     titleParts.push(ev.title);
 
     const rows = mappings.map(m =>
@@ -292,7 +294,7 @@ function runConvert(fromInput, toInput) {
       </div>`;
   });
 
-  currentMappings = allMappings;
+  currentMappings = allCodegenMappings; // 변환 코드 생성에는 전체 매핑 사용
   currentTitle = titleParts.join(' + ');
 
   resultDiv.innerHTML = html;
@@ -332,6 +334,26 @@ function getEventMappings(ev) {
   if (ev.sigunguMapping) return ev.sigunguMapping;
   if (ev.admMapping) return ev.admMapping;
   return [];
+}
+
+// FR-12: 변환 코드 생성용 전체 매핑 (시군구 5자리, 중복 제거)
+function getCodegenMappings(ev) {
+  const mapping = ev.sigunguMapping || ev.admMapping || [];
+  const seen = new Map();
+  mapping.forEach(m => {
+    const beforeCode5 = m.before.substring(0, 5);
+    const afterCode5 = m.after.substring(0, 5);
+    const key = beforeCode5 + '\u2192' + afterCode5;
+    if (!seen.has(key)) {
+      seen.set(key, {
+        before: beforeCode5,
+        beforeName: m.gu ? (ev.parentName || m.beforeName) : m.beforeName,
+        after: afterCode5,
+        afterName: m.gu ? ((ev.parentName || '') + ' ' + m.gu).trim() : m.afterName
+      });
+    }
+  });
+  return Array.from(seen.values());
 }
 
 function getEventDateLabel(id) {
