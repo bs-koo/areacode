@@ -59,46 +59,19 @@ const CHANGE_EVENTS = [
 // ============================================================
 // 시도코드 스냅샷 (시행일 기준)
 // ============================================================
-const SIDO_SNAPSHOTS = [
-  {
-    validFrom: '0000-00-00',
-    validTo: '2023-06-10',
-    label: '~ 2023.06.10',
-    codes: [
-      { code: '11', name: '서울특별시' },
-      { code: '21', name: '부산광역시' },
-      { code: '22', name: '대구광역시' },
-      { code: '23', name: '인천광역시' },
-      { code: '24', name: '광주광역시' },
-      { code: '25', name: '대전광역시' },
-      { code: '26', name: '울산광역시' },
-      { code: '29', name: '세종특별자치시' },
-      { code: '31', name: '경기도' },
-      { code: '32', name: '강원도' },  // 구 강원도 → 나중에 42로 변경 예정이었으나 실제 코드는 42
-      { code: '33', name: '충청북도' },
-      { code: '34', name: '충청남도' },
-      { code: '35', name: '전라북도' },  // 구 전라북도 → 나중에 45로
-      { code: '36', name: '전라남도' },
-      { code: '37', name: '경상북도' },
-      { code: '38', name: '경상남도' },
-      { code: '39', name: '제주특별자치도' },
-    ]
-  }
-];
-
 // 실제 행정안전부 기준 시도코드 스냅샷
 const SIDO_CODE_SNAPSHOTS = {
   // 2023.06.10 이전 (강원도=42, 전라북도=45)
   '202306': [
     { code: '11', name: '서울특별시' },
-    { code: '21', name: '부산광역시' },
-    { code: '22', name: '대구광역시' },
-    { code: '23', name: '인천광역시' },
-    { code: '24', name: '광주광역시' },
-    { code: '25', name: '대전광역시' },
-    { code: '26', name: '울산광역시' },
-    { code: '29', name: '세종특별자치시' },
-    { code: '31', name: '경기도' },
+    { code: '26', name: '부산광역시' },
+    { code: '27', name: '대구광역시' },
+    { code: '28', name: '인천광역시' },
+    { code: '29', name: '광주광역시' },
+    { code: '30', name: '대전광역시' },
+    { code: '31', name: '울산광역시' },
+    { code: '36', name: '세종특별자치시' },
+    { code: '41', name: '경기도' },
     { code: '42', name: '강원도' },
     { code: '43', name: '충청북도' },
     { code: '44', name: '충청남도' },
@@ -111,14 +84,14 @@ const SIDO_CODE_SNAPSHOTS = {
   // 2023.06.11 이후 (강원특별자치도=51)
   '202307': [
     { code: '11', name: '서울특별시' },
-    { code: '21', name: '부산광역시' },
-    { code: '22', name: '대구광역시' },
-    { code: '23', name: '인천광역시' },
-    { code: '24', name: '광주광역시' },
-    { code: '25', name: '대전광역시' },
-    { code: '26', name: '울산광역시' },
-    { code: '29', name: '세종특별자치시' },
-    { code: '31', name: '경기도' },
+    { code: '26', name: '부산광역시' },
+    { code: '27', name: '대구광역시' },
+    { code: '28', name: '인천광역시' },
+    { code: '29', name: '광주광역시' },
+    { code: '30', name: '대전광역시' },
+    { code: '31', name: '울산광역시' },
+    { code: '36', name: '세종특별자치시' },
+    { code: '41', name: '경기도' },
     { code: '43', name: '충청북도' },
     { code: '44', name: '충청남도' },
     { code: '45', name: '전라북도' },
@@ -131,14 +104,14 @@ const SIDO_CODE_SNAPSHOTS = {
   // 2024.01.18 이후 (전북특별자치도=52)
   '202402': [
     { code: '11', name: '서울특별시' },
-    { code: '21', name: '부산광역시' },
-    { code: '22', name: '대구광역시' },
-    { code: '23', name: '인천광역시' },
-    { code: '24', name: '광주광역시' },
-    { code: '25', name: '대전광역시' },
-    { code: '26', name: '울산광역시' },
-    { code: '29', name: '세종특별자치시' },
-    { code: '31', name: '경기도' },
+    { code: '26', name: '부산광역시' },
+    { code: '27', name: '대구광역시' },
+    { code: '28', name: '인천광역시' },
+    { code: '29', name: '광주광역시' },
+    { code: '30', name: '대전광역시' },
+    { code: '31', name: '울산광역시' },
+    { code: '36', name: '세종특별자치시' },
+    { code: '41', name: '경기도' },
     { code: '43', name: '충청북도' },
     { code: '44', name: '충청남도' },
     { code: '46', name: '전라남도' },
@@ -156,11 +129,11 @@ function getSidoCodesAt(yyyymm) {
   if (n < 202307) {
     // 2023.06 이전: 강원도=42, 전라북도=45
     return SIDO_CODE_SNAPSHOTS['202306'];
-  } else if (n < 202402) {
-    // 2023.07 ~ 2024.01: 강원특별자치도=51, 전라북도=45
+  } else if (n < 202401) {
+    // 2023.07 ~ 2023.12: 강원특별자치도=51, 전라북도=45
     return SIDO_CODE_SNAPSHOTS['202307'];
   } else {
-    // 2024.02 이후: 강원특별자치도=51, 전북특별자치도=52
+    // 2024.01 이후: 강원특별자치도=51, 전북특별자치도=52
     return SIDO_CODE_SNAPSHOTS['202402'];
   }
 }
@@ -223,7 +196,9 @@ const JEONBUK_SIGUNGU_MAPPING = [
   { before: '4575000000', beforeName: '임실군', after: '5275000000', afterName: '임실군' },
   { before: '4577000000', beforeName: '순창군', after: '5277000000', afterName: '순창군' },
   { before: '4579000000', beforeName: '고창군', after: '5279000000', afterName: '고창군' },
-  { before: '4580000000', beforeName: '부안군', after: '5280000000', afterName: '부안군' }
+  { before: '4580000000', beforeName: '부안군', after: '5280000000', afterName: '부안군' },
+  { before: '4511800000', beforeName: '전주시효자출장소', after: '5211800000', afterName: '전주시효자출장소' },
+  { before: '4514500000', beforeName: '익산시함열출장소', after: '5214500000', afterName: '익산시함열출장소' }
 ];
 
 // 부천시 구 재신설 (2024.01.01) - 시군구 레벨
@@ -250,38 +225,38 @@ const BUCHEON_ADM_MAPPING = [
 // 화성시 4개 구 신설 (2026.02.01) - 행정동 매핑
 const HWASEONG_ADM_MAPPING = [
   // 만세구
-  { before: '4159025600', beforeName: '우정읍', after: '4159125000', afterName: '우정읍', gu: '만세구' },
-  { before: '4159025900', beforeName: '향남읍', after: '4159125300', afterName: '향남읍', gu: '만세구' },
-  { before: '4159026200', beforeName: '남양읍', after: '4159125600', afterName: '남양읍', gu: '만세구' },
-  { before: '4159033000', beforeName: '마도면', after: '4159131000', afterName: '마도면', gu: '만세구' },
-  { before: '4159034000', beforeName: '송산면', after: '4159132000', afterName: '송산면', gu: '만세구' },
-  { before: '4159035000', beforeName: '서신면', after: '4159133000', afterName: '서신면', gu: '만세구' },
-  { before: '4159036000', beforeName: '팔탄면', after: '4159134000', afterName: '팔탄면', gu: '만세구' },
-  { before: '4159037000', beforeName: '장안면', after: '4159135000', afterName: '장안면', gu: '만세구' },
-  { before: '4159040000', beforeName: '양감면', after: '4159136000', afterName: '양감면', gu: '만세구' },
-  { before: '4159051500', beforeName: '새솔동', after: '4159151000', afterName: '새솔동', gu: '만세구' },
+  { before: '4159025600', beforeName: '우정읍', after: '4159125600', afterName: '우정읍', gu: '만세구' },
+  { before: '4159025900', beforeName: '향남읍', after: '4159125900', afterName: '향남읍', gu: '만세구' },
+  { before: '4159026200', beforeName: '남양읍', after: '4159126200', afterName: '남양읍', gu: '만세구' },
+  { before: '4159033000', beforeName: '마도면', after: '4159133000', afterName: '마도면', gu: '만세구' },
+  { before: '4159034000', beforeName: '송산면', after: '4159134000', afterName: '송산면', gu: '만세구' },
+  { before: '4159035000', beforeName: '서신면', after: '4159135000', afterName: '서신면', gu: '만세구' },
+  { before: '4159036000', beforeName: '팔탄면', after: '4159136000', afterName: '팔탄면', gu: '만세구' },
+  { before: '4159037000', beforeName: '장안면', after: '4159137000', afterName: '장안면', gu: '만세구' },
+  { before: '4159040000', beforeName: '양감면', after: '4159140000', afterName: '양감면', gu: '만세구' },
+  { before: '4159051500', beforeName: '새솔동', after: '4159151500', afterName: '새솔동', gu: '만세구' },
   // 효행구
-  { before: '4159025300', beforeName: '봉담읍', after: '4159325000', afterName: '봉담읍', gu: '효행구' },
+  { before: '4159025300', beforeName: '봉담읍', after: '4159325300', afterName: '봉담읍', gu: '효행구' },
   { before: '4159031000', beforeName: '매송면', after: '4159331000', afterName: '매송면', gu: '효행구' },
   { before: '4159032000', beforeName: '비봉면', after: '4159332000', afterName: '비봉면', gu: '효행구' },
-  { before: '4159041000', beforeName: '정남면', after: '4159333000', afterName: '정남면', gu: '효행구' },
-  { before: '4159056000', beforeName: '기배동', after: '4159351000', afterName: '기배동', gu: '효행구' },
+  { before: '4159041000', beforeName: '정남면', after: '4159341000', afterName: '정남면', gu: '효행구' },
+  { before: '4159056000', beforeName: '기배동', after: '4159356000', afterName: '기배동', gu: '효행구' },
   // 병점구
-  { before: '4159052000', beforeName: '진안동', after: '4159551000', afterName: '진안동', gu: '병점구' },
-  { before: '4159053000', beforeName: '병점1동', after: '4159552000', afterName: '병점1동', gu: '병점구' },
-  { before: '4159054000', beforeName: '병점2동', after: '4159553000', afterName: '병점2동', gu: '병점구' },
-  { before: '4159055000', beforeName: '반월동', after: '4159554000', afterName: '반월동', gu: '병점구' },
-  { before: '4159057000', beforeName: '화산동', after: '4159555000', afterName: '화산동', gu: '병점구' },
+  { before: '4159052000', beforeName: '진안동', after: '4159552000', afterName: '진안동', gu: '병점구' },
+  { before: '4159053000', beforeName: '병점1동', after: '4159553000', afterName: '병점1동', gu: '병점구' },
+  { before: '4159054000', beforeName: '병점2동', after: '4159554000', afterName: '병점2동', gu: '병점구' },
+  { before: '4159055000', beforeName: '반월동', after: '4159555000', afterName: '반월동', gu: '병점구' },
+  { before: '4159057000', beforeName: '화산동', after: '4159557000', afterName: '화산동', gu: '병점구' },
   // 동탄구
-  { before: '4159058500', beforeName: '동탄1동', after: '4159751000', afterName: '동탄1동', gu: '동탄구' },
-  { before: '4159058600', beforeName: '동탄2동', after: '4159752000', afterName: '동탄2동', gu: '동탄구' },
-  { before: '4159058700', beforeName: '동탄3동', after: '4159753000', afterName: '동탄3동', gu: '동탄구' },
-  { before: '4159058800', beforeName: '동탄4동', after: '4159754000', afterName: '동탄4동', gu: '동탄구' },
-  { before: '4159059000', beforeName: '동탄5동', after: '4159755000', afterName: '동탄5동', gu: '동탄구' },
-  { before: '4159060000', beforeName: '동탄6동', after: '4159756000', afterName: '동탄6동', gu: '동탄구' },
-  { before: '4159061000', beforeName: '동탄7동', after: '4159757000', afterName: '동탄7동', gu: '동탄구' },
-  { before: '4159062000', beforeName: '동탄8동', after: '4159758000', afterName: '동탄8동', gu: '동탄구' },
-  { before: '4159063000', beforeName: '동탄9동', after: '4159759000', afterName: '동탄9동', gu: '동탄구' }
+  { before: '4159058500', beforeName: '동탄1동', after: '4159758500', afterName: '동탄1동', gu: '동탄구' },
+  { before: '4159058600', beforeName: '동탄2동', after: '4159758600', afterName: '동탄2동', gu: '동탄구' },
+  { before: '4159058700', beforeName: '동탄3동', after: '4159758700', afterName: '동탄3동', gu: '동탄구' },
+  { before: '4159058800', beforeName: '동탄4동', after: '4159758800', afterName: '동탄4동', gu: '동탄구' },
+  { before: '4159059000', beforeName: '동탄5동', after: '4159759000', afterName: '동탄5동', gu: '동탄구' },
+  { before: '4159060000', beforeName: '동탄6동', after: '4159760000', afterName: '동탄6동', gu: '동탄구' },
+  { before: '4159061000', beforeName: '동탄7동', after: '4159761000', afterName: '동탄7동', gu: '동탄구' },
+  { before: '4159062000', beforeName: '동탄8동', after: '4159762000', afterName: '동탄8동', gu: '동탄구' },
+  { before: '4159063000', beforeName: '동탄9동', after: '4159763000', afterName: '동탄9동', gu: '동탄구' }
 ];
 
 // ============================================================

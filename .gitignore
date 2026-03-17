@@ -4,4 +4,4 @@
 # Local tool state
 .omc/
 
-requirements/
+requirements/.dev/

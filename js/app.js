@@ -69,11 +69,61 @@ function initSidoSection() {
   const defaultYM = String(now.getFullYear()) + String(now.getMonth() + 1).padStart(2, '0');
   input.value = defaultYM;
 
-  btn.addEventListener('click', () => querySido(input, resultDiv));
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') querySido(input, resultDiv); });
+  const searchInput = document.getElementById('sido-search');
+
+  btn.addEventListener('click', () => {
+    querySido(input, resultDiv);
+    applySidoFilter();
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      querySido(input, resultDiv);
+      applySidoFilter();
+    }
+  });
+  if (searchInput) {
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        querySido(input, resultDiv);
+        applySidoFilter();
+      }
+    });
+  }
 
   // 초기 렌더링
   querySido(input, resultDiv);
+}
+
+// ---- FR-10: 시도코드↔시도명 검색 (조회 버튼 클릭 시 함께 적용) ----
+function applySidoFilter() {
+  const searchInput = document.getElementById('sido-search');
+  if (!searchInput) return;
+
+  const keyword = searchInput.value.trim().toLowerCase();
+  const rows = document.querySelectorAll('#sido-result .data-table tbody tr');
+  let visibleCount = 0;
+  let totalCount = 0;
+
+  rows.forEach(row => {
+    totalCount++;
+    const code = row.cells[0]?.textContent || '';
+    const name = row.cells[1]?.textContent || '';
+    const match = !keyword || code.includes(keyword) || name.toLowerCase().includes(keyword);
+    row.style.display = match ? '' : 'none';
+    if (match) visibleCount++;
+  });
+
+  updateSidoFilterCount(totalCount, visibleCount, keyword);
+}
+
+function updateSidoFilterCount(total, visible, keyword) {
+  const filterInfo = document.getElementById('sido-filter-info');
+  if (!filterInfo) return;
+  if (!keyword) {
+    filterInfo.textContent = '';
+  } else {
+    filterInfo.textContent = '(' + total + '개 중 ' + visible + '개 표시)';
+  }
 }
 
 function querySido(input, resultDiv) {
@@ -122,7 +172,7 @@ function querySido(input, resultDiv) {
 
   resultDiv.innerHTML = `
     <div class="result-header">
-      <strong>${raw.substring(0,4)}년 ${raw.substring(4,6)}월</strong> 기준 시도코드 (총 ${codes.length}개)
+      <strong>${raw.substring(0,4)}년 ${raw.substring(4,6)}월</strong> 기준 시도코드 (총 ${codes.length}개) <span id="sido-filter-info"></span>
     </div>
     <div class="table-wrap">
       <table class="data-table">
@@ -135,6 +185,9 @@ function querySido(input, resultDiv) {
       <span class="legend-item changed">변경</span>
       <span class="legend-item abolished">폐지</span>
     </div>`;
+
+  // 조회 후 검색 필터 적용
+  applySidoFilter();
 }
 
 function getPrevYM(yyyymm) {
@@ -155,6 +208,8 @@ function initConvertSection() {
   toInput.value = '202602';
 
   btn.addEventListener('click', () => runConvert(fromInput, toInput));
+  fromInput.addEventListener('keydown', e => { if (e.key === 'Enter') runConvert(fromInput, toInput); });
+  toInput.addEventListener('keydown', e => { if (e.key === 'Enter') runConvert(fromInput, toInput); });
 
   // 언어 탭 전환
   document.querySelectorAll('.lang-tab').forEach(tab => {
@@ -195,7 +250,7 @@ function runConvert(fromInput, toInput) {
   if (events.length === 0) {
     resultDiv.innerHTML = `<div class="no-change">
       <div class="no-change-icon">✓</div>
-      <p><strong>${from}</strong>과 <strong>${to}</strong> 사이에 변경된 행정구역코드가 없습니다.</p>
+      <p><strong>${formatYM(from)}</strong>과 <strong>${formatYM(to)}</strong> 사이에 변경된 행정구역코드가 없습니다.</p>
     </div>`;
     codeSection.style.display = 'none';
     return;
@@ -264,7 +319,9 @@ function getEventDateLabel(id) {
 function renderCodeOutput(lang) {
   const pre = document.getElementById('code-output');
   if (!pre) return;
-  const code = generateCode(currentMappings, currentTitle, lang);
+  const fromVal = document.getElementById('convert-from')?.value || '';
+  const toVal = document.getElementById('convert-to')?.value || '';
+  const code = generateCode(currentMappings, currentTitle, lang, fromVal, toVal);
   pre.textContent = code;
 }
 
@@ -273,17 +330,23 @@ function copyCode() {
   if (!pre) return;
   navigator.clipboard.writeText(pre.textContent).then(() => {
     const btn = document.getElementById('copy-btn');
-    const orig = btn.textContent;
-    btn.textContent = '복사 완료!';
+    const label = btn.querySelector('.copy-label');
+    if (label) {
+      label.textContent = '복사 완료!';
+    }
     btn.classList.add('copied');
     setTimeout(() => {
-      btn.textContent = orig;
+      if (label) label.textContent = '복사';
       btn.classList.remove('copied');
     }, 2000);
   });
 }
 
 // ---- 공통 유틸 ----
+function formatYM(yyyymm) {
+  return yyyymm.substring(0, 4) + '년 ' + yyyymm.substring(4, 6) + '월';
+}
+
 function showError(container, msg) {
   container.innerHTML = `<div class="error-msg">${msg}</div>`;
 }

@@ -9,8 +9,11 @@
 <body>
 
 <header class="site-header">
-  <h1>행정구역코드 변환 도구</h1>
-  <p class="subtitle">행정안전부 행정구역 변경 이력 조회 &amp; 코드 변환 &amp; 변환 코드 생성</p>
+  <div class="header-inner">
+    <h1>행정구역코드 변환 도구</h1>
+    <p class="subtitle">행정안전부 행정구역 변경 이력 조회 &amp; 코드 변환 &amp; 변환 코드 생성</p>
+    <span class="header-badge">행정안전부 기준 | 2023~2026</span>
+  </div>
 </header>
 
 <nav class="nav-bar">
@@ -52,6 +55,13 @@
         <label for="sido-yyyymm">기준년월 (YYYYMM)</label>
         <input type="text" id="sido-yyyymm" class="form-control" placeholder="예: 202401" maxlength="6">
       </div>
+      <div class="form-group search-group">
+        <label for="sido-search">지역 검색</label>
+        <div class="search-box-inline">
+          <input type="text" id="sido-search" class="form-control search-input" placeholder="시도코드 또는 시도명">
+          <span class="search-icon">&#128269;</span>
+        </div>
+      </div>
       <button class="query-btn" id="sido-query-btn">조회</button>
     </div>
 
@@ -66,13 +76,13 @@
     </div>
 
     <div class="query-form">
-      <div class="convert-form-row" style="width:100%; align-items:flex-end; gap:10px; display:flex; flex-wrap:wrap;">
-        <div class="form-group" style="flex:1; min-width:130px;">
+      <div class="convert-form-row">
+        <div class="form-group">
           <label for="convert-from">기준년월 From</label>
           <input type="text" id="convert-from" class="form-control" placeholder="예: 202306" maxlength="6">
         </div>
-        <div class="convert-sep" style="padding-bottom:9px; color:#94a3b8; font-weight:700;">→</div>
-        <div class="form-group" style="flex:1; min-width:130px;">
+        <div class="convert-sep">&#8594;</div>
+        <div class="form-group">
           <label for="convert-to">기준년월 To</label>
           <input type="text" id="convert-to" class="form-control" placeholder="예: 202602" maxlength="6">
         </div>
@@ -83,23 +93,30 @@
     <div class="result-container" id="convert-result"></div>
 
     <!-- 코드 생성 섹션 (변환 결과 있을 때만 표시) -->
-    <div class="code-gen-section" id="code-gen-section" style="display:none;">
+    <div class="code-gen-section" id="code-gen-section">
       <div class="code-gen-header">
         <h3>변환 코드 생성</h3>
         <div class="lang-tabs">
           <button class="lang-tab active" data-lang="python">Python</button>
           <button class="lang-tab" data-lang="javascript">JavaScript</button>
           <button class="lang-tab" data-lang="sql">SQL</button>
+          <button class="copy-btn" id="copy-btn">
+            <svg class="copy-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            <span class="copy-label">복사</span>
+          </button>
         </div>
       </div>
       <div class="code-output-wrap">
         <pre class="code-pre" id="code-output"></pre>
-        <button class="copy-btn" id="copy-btn">복사</button>
       </div>
     </div>
   </section>
 
 </main>
+
+<footer class="site-footer">
+  <p>GX 사업본부 데이터플랫폼 | 행정안전부 공식 데이터 기반</p>
+</footer>
 
 <script src="js/data.js"></script>
 <script src="js/codegen.js"></script>
