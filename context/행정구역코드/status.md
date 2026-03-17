@@ -20,7 +20,7 @@
 | FR-7 | Python 변환 코드 생성 + 복사 | ✅ | generatePythonCode() |
 | FR-8 | JavaScript 변환 코드 생성 + 복사 | ✅ | generateJavaScriptCode() |
 | FR-9 | SQL 쿼리 변환 코드 생성 + 복사 | ✅ | generateSQLCode() |
-| FR-10 | 시도코드↔시도명 양방향 검색 | ✅ | initSidoSearch() |
+| FR-10 | 시도코드↔시도명 양방향 검색 | ✅ | applySidoFilter() |
 
 ## 데이터 정합성
 
@@ -29,7 +29,7 @@
 | SIDO_CODE_SNAPSHOTS 시도코드 | ✅ | 행정안전부 기준 17개 코드 정확 |
 | 강원특별자치도 시군구 매핑 (19건) | ✅ | GANGWON_SIGUNGU_MAPPING |
 | 군위군 행정동 매핑 (9건) | ✅ | GUNWI_ADM_MAPPING |
-| 전북특별자치도 시군구 매핑 (17건) | ✅ | JEONBUK_SIGUNGU_MAPPING |
+| 전북특별자치도 시군구 매핑 (19건) | ✅ | JEONBUK_SIGUNGU_MAPPING |
 | 부천시 시군구/행정동 매핑 | ✅ | BUCHEON_SIGUNGU/ADM_MAPPING |
 | 화성시 행정동 매핑 (29건) | ✅ | HWASEONG_ADM_MAPPING (행정동 기준) |
 | getSidoCodesAt 경계값 | ✅ | 202307(강원), 202401(전북) |

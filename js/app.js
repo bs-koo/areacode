@@ -330,11 +330,13 @@ function copyCode() {
   if (!pre) return;
   navigator.clipboard.writeText(pre.textContent).then(() => {
     const btn = document.getElementById('copy-btn');
-    const orig = btn.textContent;
-    btn.textContent = '복사 완료!';
+    const label = btn.querySelector('.copy-label');
+    if (label) {
+      label.textContent = '복사 완료!';
+    }
     btn.classList.add('copied');
     setTimeout(() => {
-      btn.textContent = orig;
+      if (label) label.textContent = '복사';
       btn.classList.remove('copied');
     }, 2000);
   });
