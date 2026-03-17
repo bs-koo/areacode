@@ -210,11 +210,11 @@ main.main-content { flex: 1; }
 .timeline::before {
   content: '';
   position: absolute;
-  left: 11px;
-  top: 8px;
-  bottom: 8px;
+  left: 13px;
+  top: 0;
+  bottom: 0;
   width: 2px;
-  background: linear-gradient(180deg, var(--primary-light) 0%, var(--gray-200) 100%);
+  background: var(--primary);
   border-radius: 2px;
 }
 .timeline-item {
@@ -230,7 +230,8 @@ main.main-content { flex: 1; }
 .timeline-dot {
   position: absolute;
   left: -29px;
-  top: 20px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 14px;
   height: 14px;
   border-radius: 50%;
@@ -240,7 +241,7 @@ main.main-content { flex: 1; }
   transition: transform var(--transition-fast);
 }
 .timeline-item:hover .timeline-dot {
-  transform: scale(1.2);
+  transform: translateY(-50%) scale(1.2);
 }
 .timeline-card {
   background: #fff;

@@ -196,7 +196,9 @@ const JEONBUK_SIGUNGU_MAPPING = [
   { before: '4575000000', beforeName: '임실군', after: '5275000000', afterName: '임실군' },
   { before: '4577000000', beforeName: '순창군', after: '5277000000', afterName: '순창군' },
   { before: '4579000000', beforeName: '고창군', after: '5279000000', afterName: '고창군' },
-  { before: '4580000000', beforeName: '부안군', after: '5280000000', afterName: '부안군' }
+  { before: '4580000000', beforeName: '부안군', after: '5280000000', afterName: '부안군' },
+  { before: '4511800000', beforeName: '전주시효자출장소', after: '5211800000', afterName: '전주시효자출장소' },
+  { before: '4514500000', beforeName: '익산시함열출장소', after: '5214500000', afterName: '익산시함열출장소' }
 ];
 
 // 부천시 구 재신설 (2024.01.01) - 시군구 레벨
