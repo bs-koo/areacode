@@ -289,7 +289,7 @@ const CODE_CHANGE_EVENTS = [
     effectiveDate: '20240101',
     yyyymm: '202401',
     type: 'sigungu',
-    displayLevel: 'sigungu',
+    displayLevel: 'adm',
     title: '부천시 구 재신설',
     sigunguMapping: BUCHEON_SIGUNGU_MAPPING,
     admMapping: BUCHEON_ADM_MAPPING
@@ -311,7 +311,7 @@ const CODE_CHANGE_EVENTS = [
     effectiveDate: '20260201',
     yyyymm: '202602',
     type: 'sigungu',
-    displayLevel: 'sigungu',
+    displayLevel: 'adm',
     title: '화성시 구 신설',
     parentName: '화성시',
     admMapping: HWASEONG_ADM_MAPPING

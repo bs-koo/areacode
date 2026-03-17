@@ -311,7 +311,17 @@ function getEventMappings(ev) {
   if (ev.displayLevel === 'sido' && ev.sidoMapping) {
     return ev.sidoMapping;
   }
-  // 시군구 편입/신설: 시군구코드 5자리만 표시 (중복 제거)
+  // 구 신설/재신설: 읍면동 10자리 전체 표시 (1:N 관계)
+  if (ev.displayLevel === 'adm') {
+    const mapping = ev.admMapping || [];
+    return mapping.map(m => ({
+      before: m.before,
+      beforeName: m.gu ? (ev.parentName || '') + ' ' + m.beforeName : m.beforeName,
+      after: m.after,
+      afterName: m.gu ? (ev.parentName || '') + ' ' + m.gu + ' ' + m.afterName : m.afterName
+    }));
+  }
+  // 시군구 편입: 시군구코드 5자리만 표시 (중복 제거)
   if (ev.displayLevel === 'sigungu') {
     const mapping = ev.sigunguMapping || ev.admMapping || [];
     const seen = new Map();
@@ -336,6 +346,10 @@ function getEventMappings(ev) {
 
 // FR-12: 변환 코드 생성용 매핑 (화면 표시와 동일 + 뒷자리 변경 예외 포함)
 function getCodegenMappings(ev) {
+  // 구 신설/재신설: 표시와 동일 (읍면동 10자리 전체)
+  if (ev.displayLevel === 'adm') {
+    return getEventMappings(ev);
+  }
   // 기본: 화면 표시와 동일한 압축 매핑
   const displayMappings = getEventMappings(ev);
 
@@ -348,28 +362,16 @@ function getCodegenMappings(ev) {
     mapping.forEach(m => {
       const expectedAfter = ev.sidoMapping[0].after + m.before.substring(2);
       if (m.after !== expectedAfter) {
-        exceptions.push({
-          before: m.before,
-          beforeName: m.beforeName,
-          after: m.after,
-          afterName: m.afterName
-        });
+        exceptions.push(m);
       }
     });
   } else if (ev.displayLevel === 'sigungu') {
     // 시군구 편입/신설: 앞 5자리 교체 후 나머지가 다른 항목
     mapping.forEach(m => {
-      const before5 = m.before.substring(0, 5);
-      const after5 = m.after.substring(0, 5);
       const beforeTail = m.before.substring(5);
       const afterTail = m.after.substring(5);
       if (beforeTail !== afterTail) {
-        exceptions.push({
-          before: m.before,
-          beforeName: m.beforeName,
-          after: m.after,
-          afterName: m.afterName
-        });
+        exceptions.push(m);
       }
     });
   }
