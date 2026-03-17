@@ -648,26 +648,24 @@ main.main-content { flex: 1; }
   white-space: pre;
 }
 .copy-btn {
-  position: absolute;
-  top: 14px;
-  right: 14px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  background: rgba(255,255,255,.08);
-  color: #cbd5e1;
-  border: 1px solid rgba(255,255,255,.12);
+  margin-left: 8px;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-sm);
   font-size: .78rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
-  backdrop-filter: blur(4px);
+  transition: all var(--transition-fast);
   font-family: var(--font);
 }
 .copy-btn:hover {
-  background: rgba(255,255,255,.18);
+  background: var(--primary);
+  border-color: var(--primary);
   color: #fff;
 }
 .copy-btn.copied {
