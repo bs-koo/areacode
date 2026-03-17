@@ -320,19 +320,17 @@ function getEventMappings(ev) {
       const afterCode5 = m.after.substring(0, 5);
       const key = beforeCode5 + '\u2192' + afterCode5;
       if (!seen.has(key)) {
+        const parentName = ev.parentName || '';
         seen.set(key, {
           before: beforeCode5,
-          beforeName: m.gu ? (ev.parentName || m.beforeName) : m.beforeName,
+          beforeName: m.gu && parentName ? parentName : m.beforeName,
           after: afterCode5,
-          afterName: m.gu ? ((ev.parentName || '') + ' ' + m.gu).trim() : m.afterName
+          afterName: m.gu && parentName ? (parentName + ' ' + m.gu).trim() : m.afterName
         });
       }
     });
     return Array.from(seen.values());
   }
-  // 기본: 기존 로직
-  if (ev.sigunguMapping) return ev.sigunguMapping;
-  if (ev.admMapping) return ev.admMapping;
   return [];
 }
 
