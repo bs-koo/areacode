@@ -208,6 +208,8 @@ function initConvertSection() {
   toInput.value = '202602';
 
   btn.addEventListener('click', () => runConvert(fromInput, toInput));
+  fromInput.addEventListener('keydown', e => { if (e.key === 'Enter') runConvert(fromInput, toInput); });
+  toInput.addEventListener('keydown', e => { if (e.key === 'Enter') runConvert(fromInput, toInput); });
 
   // 언어 탭 전환
   document.querySelectorAll('.lang-tab').forEach(tab => {
@@ -248,7 +250,7 @@ function runConvert(fromInput, toInput) {
   if (events.length === 0) {
     resultDiv.innerHTML = `<div class="no-change">
       <div class="no-change-icon">✓</div>
-      <p><strong>${from}</strong>과 <strong>${to}</strong> 사이에 변경된 행정구역코드가 없습니다.</p>
+      <p><strong>${formatYM(from)}</strong>과 <strong>${formatYM(to)}</strong> 사이에 변경된 행정구역코드가 없습니다.</p>
     </div>`;
     codeSection.style.display = 'none';
     return;
@@ -339,6 +341,10 @@ function copyCode() {
 }
 
 // ---- 공통 유틸 ----
+function formatYM(yyyymm) {
+  return yyyymm.substring(0, 4) + '년 ' + yyyymm.substring(4, 6) + '월';
+}
+
 function showError(container, msg) {
   container.innerHTML = `<div class="error-msg">${msg}</div>`;
 }
