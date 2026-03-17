@@ -21,6 +21,8 @@
 | FR-8 | JavaScript 변환 코드 생성 + 복사 | ✅ | generateJavaScriptCode() |
 | FR-9 | SQL 쿼리 변환 코드 생성 + 복사 | ✅ | generateSQLCode() |
 | FR-10 | 시도코드↔시도명 양방향 검색 | ✅ | applySidoFilter() |
+| FR-11 | 코드 표시 자릿수 조정 (시도 2자리, 시군구 5자리) | ⬜ | |
+| FR-12 | 변환 코드 생성도 자릿수 기준 적용 | ⬜ | |
 
 ## 데이터 정합성
 
