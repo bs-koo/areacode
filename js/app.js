@@ -69,11 +69,61 @@ function initSidoSection() {
   const defaultYM = String(now.getFullYear()) + String(now.getMonth() + 1).padStart(2, '0');
   input.value = defaultYM;
 
-  btn.addEventListener('click', () => querySido(input, resultDiv));
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') querySido(input, resultDiv); });
+  btn.addEventListener('click', () => {
+    querySido(input, resultDiv);
+    initSidoSearch();
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      querySido(input, resultDiv);
+      initSidoSearch();
+    }
+  });
 
   // 초기 렌더링
   querySido(input, resultDiv);
+  initSidoSearch();
+}
+
+// ---- FR-10: 시도코드↔시도명 양방향 검색 ----
+let _sidoSearchBound = false;
+
+function initSidoSearch() {
+  const searchInput = document.getElementById('sido-search');
+  if (!searchInput) return;
+
+  // 이벤트 리스너 중복 등록 방지
+  if (_sidoSearchBound) return;
+  _sidoSearchBound = true;
+
+  searchInput.addEventListener('input', () => {
+    const keyword = searchInput.value.trim().toLowerCase();
+    const rows = document.querySelectorAll('#sido-result .data-table tbody tr');
+    let visibleCount = 0;
+    let totalCount = 0;
+
+    rows.forEach(row => {
+      totalCount++;
+      const code = row.cells[0]?.textContent || '';
+      const name = row.cells[1]?.textContent || '';
+      const match = !keyword || code.includes(keyword) || name.toLowerCase().includes(keyword);
+      row.style.display = match ? '' : 'none';
+      if (match) visibleCount++;
+    });
+
+    // 결과 카운트 업데이트
+    updateSidoFilterCount(totalCount, visibleCount, keyword);
+  });
+}
+
+function updateSidoFilterCount(total, visible, keyword) {
+  const filterInfo = document.getElementById('sido-filter-info');
+  if (!filterInfo) return;
+  if (!keyword) {
+    filterInfo.textContent = '';
+  } else {
+    filterInfo.textContent = '(' + total + '개 중 ' + visible + '개 표시)';
+  }
 }
 
 function querySido(input, resultDiv) {
@@ -122,7 +172,7 @@ function querySido(input, resultDiv) {
 
   resultDiv.innerHTML = `
     <div class="result-header">
-      <strong>${raw.substring(0,4)}년 ${raw.substring(4,6)}월</strong> 기준 시도코드 (총 ${codes.length}개)
+      <strong>${raw.substring(0,4)}년 ${raw.substring(4,6)}월</strong> 기준 시도코드 (총 ${codes.length}개) <span id="sido-filter-info"></span>
     </div>
     <div class="table-wrap">
       <table class="data-table">
@@ -135,6 +185,12 @@ function querySido(input, resultDiv) {
       <span class="legend-item changed">변경</span>
       <span class="legend-item abolished">폐지</span>
     </div>`;
+
+  // 검색 필터가 유지되도록 기존 검색어로 다시 필터링
+  const searchInput = document.getElementById('sido-search');
+  if (searchInput && searchInput.value.trim()) {
+    searchInput.dispatchEvent(new Event('input'));
+  }
 }
 
 function getPrevYM(yyyymm) {
@@ -264,7 +320,9 @@ function getEventDateLabel(id) {
 function renderCodeOutput(lang) {
   const pre = document.getElementById('code-output');
   if (!pre) return;
-  const code = generateCode(currentMappings, currentTitle, lang);
+  const fromVal = document.getElementById('convert-from')?.value || '';
+  const toVal = document.getElementById('convert-to')?.value || '';
+  const code = generateCode(currentMappings, currentTitle, lang, fromVal, toVal);
   pre.textContent = code;
 }
 

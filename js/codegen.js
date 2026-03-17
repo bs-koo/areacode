@@ -7,10 +7,13 @@
  * @param {Array} mappings - [{before, beforeName, after, afterName}, ...]
  * @param {string} eventTitle - 변경 이벤트 제목
  */
-function generatePythonCode(mappings, eventTitle) {
+function generatePythonCode(mappings, eventTitle, fromYM, toYM) {
   const lines = [];
   lines.push('# ' + eventTitle + ' 행정구역코드 변환');
   lines.push('# 생성일: ' + new Date().toLocaleDateString('ko-KR'));
+  if (fromYM && toYM) {
+    lines.push('# 변환 기간: ' + fromYM + ' → ' + toYM);
+  }
   lines.push('');
   lines.push('CODE_MAPPING = {');
   mappings.forEach(m => {
@@ -30,10 +33,13 @@ function generatePythonCode(mappings, eventTitle) {
   return lines.join('\n');
 }
 
-function generateJavaScriptCode(mappings, eventTitle) {
+function generateJavaScriptCode(mappings, eventTitle, fromYM, toYM) {
   const lines = [];
   lines.push('// ' + eventTitle + ' 행정구역코드 변환');
   lines.push('// 생성일: ' + new Date().toLocaleDateString('ko-KR'));
+  if (fromYM && toYM) {
+    lines.push('// 변환 기간: ' + fromYM + ' → ' + toYM);
+  }
   lines.push('');
   lines.push('const CODE_MAPPING = {');
   mappings.forEach(m => {
@@ -53,10 +59,13 @@ function generateJavaScriptCode(mappings, eventTitle) {
   return lines.join('\n');
 }
 
-function generateSQLCode(mappings, eventTitle) {
+function generateSQLCode(mappings, eventTitle, fromYM, toYM) {
   const lines = [];
   lines.push('-- ' + eventTitle + ' 행정구역코드 변환');
   lines.push('-- 생성일: ' + new Date().toLocaleDateString('ko-KR'));
+  if (fromYM && toYM) {
+    lines.push('-- 변환 기간: ' + fromYM + ' → ' + toYM);
+  }
   lines.push('');
   lines.push('-- CASE WHEN 방식');
   lines.push('UPDATE your_table');
@@ -81,11 +90,11 @@ function generateSQLCode(mappings, eventTitle) {
   return lines.join('\n');
 }
 
-function generateCode(mappings, eventTitle, lang) {
+function generateCode(mappings, eventTitle, lang, fromYM, toYM) {
   switch (lang) {
-    case 'python': return generatePythonCode(mappings, eventTitle);
-    case 'javascript': return generateJavaScriptCode(mappings, eventTitle);
-    case 'sql': return generateSQLCode(mappings, eventTitle);
+    case 'python': return generatePythonCode(mappings, eventTitle, fromYM, toYM);
+    case 'javascript': return generateJavaScriptCode(mappings, eventTitle, fromYM, toYM);
+    case 'sql': return generateSQLCode(mappings, eventTitle, fromYM, toYM);
     default: return '';
   }
 }
