@@ -668,6 +668,7 @@ body {
   border-color: var(--success);
   color: #fff;
 }
+.copy-label { font-size: .8rem; }
 .copy-icon {
   flex-shrink: 0;
 }
