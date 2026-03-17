@@ -257,13 +257,15 @@ function runConvert(fromInput, toInput) {
   }
 
   // 이벤트별 매핑 테이블 렌더링
-  let allMappings = [];
+  let allMappings = [];       // 화면 표시용 (압축)
+  let allCodegenMappings = []; // 변환 코드 생성용 (전체)
   let titleParts = [];
   let html = '';
 
   events.forEach(ev => {
     const mappings = getEventMappings(ev);
     allMappings = allMappings.concat(mappings);
+    allCodegenMappings = allCodegenMappings.concat(getCodegenMappings(ev));
     titleParts.push(ev.title);
 
     const rows = mappings.map(m =>
@@ -292,7 +294,7 @@ function runConvert(fromInput, toInput) {
       </div>`;
   });
 
-  currentMappings = allMappings;
+  currentMappings = allCodegenMappings; // 변환 코드 생성에는 전체 매핑 사용
   currentTitle = titleParts.join(' + ');
 
   resultDiv.innerHTML = html;
@@ -304,11 +306,75 @@ function runConvert(fromInput, toInput) {
 }
 
 function getEventMappings(ev) {
-  // 시도 레벨 변경이면 시군구 매핑 반환
-  if (ev.sigunguMapping) return ev.sigunguMapping;
-  // 행정동 레벨만 있으면 admMapping 반환
-  if (ev.admMapping) return ev.admMapping;
+  // FR-11: displayLevel 기반 코드 자릿수 조정
+  // 시도 승격: 시도코드 2자리만 표시
+  if (ev.displayLevel === 'sido' && ev.sidoMapping) {
+    return ev.sidoMapping;
+  }
+  // 시군구 편입/신설: 시군구코드 5자리만 표시 (중복 제거)
+  if (ev.displayLevel === 'sigungu') {
+    const mapping = ev.sigunguMapping || ev.admMapping || [];
+    const seen = new Map();
+    mapping.forEach(m => {
+      const beforeCode5 = m.before.substring(0, 5);
+      const afterCode5 = m.after.substring(0, 5);
+      const key = beforeCode5 + '\u2192' + afterCode5;
+      if (!seen.has(key)) {
+        const parentName = ev.parentName || '';
+        seen.set(key, {
+          before: beforeCode5,
+          beforeName: m.gu && parentName ? parentName : m.beforeName,
+          after: afterCode5,
+          afterName: m.gu && parentName ? (parentName + ' ' + m.gu).trim() : m.afterName
+        });
+      }
+    });
+    return Array.from(seen.values());
+  }
   return [];
+}
+
+// FR-12: 변환 코드 생성용 매핑 (화면 표시와 동일 + 뒷자리 변경 예외 포함)
+function getCodegenMappings(ev) {
+  // 기본: 화면 표시와 동일한 압축 매핑
+  const displayMappings = getEventMappings(ev);
+
+  // 뒷자리까지 변경되는 예외 항목 탐색
+  const mapping = ev.sigunguMapping || ev.admMapping || [];
+  const exceptions = [];
+
+  if (ev.displayLevel === 'sido') {
+    // 시도 승격: 앞 2자리 교체 후 나머지가 다른 항목
+    mapping.forEach(m => {
+      const expectedAfter = ev.sidoMapping[0].after + m.before.substring(2);
+      if (m.after !== expectedAfter) {
+        exceptions.push({
+          before: m.before,
+          beforeName: m.beforeName,
+          after: m.after,
+          afterName: m.afterName
+        });
+      }
+    });
+  } else if (ev.displayLevel === 'sigungu') {
+    // 시군구 편입/신설: 앞 5자리 교체 후 나머지가 다른 항목
+    mapping.forEach(m => {
+      const before5 = m.before.substring(0, 5);
+      const after5 = m.after.substring(0, 5);
+      const beforeTail = m.before.substring(5);
+      const afterTail = m.after.substring(5);
+      if (beforeTail !== afterTail) {
+        exceptions.push({
+          before: m.before,
+          beforeName: m.beforeName,
+          after: m.after,
+          afterName: m.afterName
+        });
+      }
+    });
+  }
+
+  return displayMappings.concat(exceptions);
 }
 
 function getEventDateLabel(id) {

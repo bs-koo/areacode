@@ -268,7 +268,11 @@ const CODE_CHANGE_EVENTS = [
     effectiveDate: '20230611',
     yyyymm: '202307', // 06.11 시행, 202306 이후(202307 이상) 조회 시 반영
     type: 'sido',
+    displayLevel: 'sido',
     title: '강원특별자치도 승격',
+    sidoMapping: [
+      { before: '42', beforeName: '강원도', after: '51', afterName: '강원특별자치도' }
+    ],
     sigunguMapping: GANGWON_SIGUNGU_MAPPING
   },
   {
@@ -276,6 +280,7 @@ const CODE_CHANGE_EVENTS = [
     effectiveDate: '20230701',
     yyyymm: '202307',
     type: 'sigungu',
+    displayLevel: 'sigungu',
     title: '군위군 대구 편입',
     admMapping: GUNWI_ADM_MAPPING
   },
@@ -284,6 +289,7 @@ const CODE_CHANGE_EVENTS = [
     effectiveDate: '20240101',
     yyyymm: '202401',
     type: 'sigungu',
+    displayLevel: 'sigungu',
     title: '부천시 구 재신설',
     sigunguMapping: BUCHEON_SIGUNGU_MAPPING,
     admMapping: BUCHEON_ADM_MAPPING
@@ -293,7 +299,11 @@ const CODE_CHANGE_EVENTS = [
     effectiveDate: '20240118',
     yyyymm: '202401',
     type: 'sido',
+    displayLevel: 'sido',
     title: '전북특별자치도 승격',
+    sidoMapping: [
+      { before: '45', beforeName: '전라북도', after: '52', afterName: '전북특별자치도' }
+    ],
     sigunguMapping: JEONBUK_SIGUNGU_MAPPING
   },
   {
@@ -301,7 +311,9 @@ const CODE_CHANGE_EVENTS = [
     effectiveDate: '20260201',
     yyyymm: '202602',
     type: 'sigungu',
+    displayLevel: 'sigungu',
     title: '화성시 구 신설',
+    parentName: '화성시',
     admMapping: HWASEONG_ADM_MAPPING
   }
 ];
