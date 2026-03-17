@@ -336,24 +336,47 @@ function getEventMappings(ev) {
   return [];
 }
 
-// FR-12: 변환 코드 생성용 전체 매핑 (시군구 5자리, 중복 제거)
+// FR-12: 변환 코드 생성용 매핑 (화면 표시와 동일 + 뒷자리 변경 예외 포함)
 function getCodegenMappings(ev) {
+  // 기본: 화면 표시와 동일한 압축 매핑
+  const displayMappings = getEventMappings(ev);
+
+  // 뒷자리까지 변경되는 예외 항목 탐색
   const mapping = ev.sigunguMapping || ev.admMapping || [];
-  const seen = new Map();
-  mapping.forEach(m => {
-    const beforeCode5 = m.before.substring(0, 5);
-    const afterCode5 = m.after.substring(0, 5);
-    const key = beforeCode5 + '\u2192' + afterCode5;
-    if (!seen.has(key)) {
-      seen.set(key, {
-        before: beforeCode5,
-        beforeName: m.gu ? (ev.parentName || m.beforeName) : m.beforeName,
-        after: afterCode5,
-        afterName: m.gu ? ((ev.parentName || '') + ' ' + m.gu).trim() : m.afterName
-      });
-    }
-  });
-  return Array.from(seen.values());
+  const exceptions = [];
+
+  if (ev.displayLevel === 'sido') {
+    // 시도 승격: 앞 2자리 교체 후 나머지가 다른 항목
+    mapping.forEach(m => {
+      const expectedAfter = ev.sidoMapping[0].after + m.before.substring(2);
+      if (m.after !== expectedAfter) {
+        exceptions.push({
+          before: m.before,
+          beforeName: m.beforeName,
+          after: m.after,
+          afterName: m.afterName
+        });
+      }
+    });
+  } else if (ev.displayLevel === 'sigungu') {
+    // 시군구 편입/신설: 앞 5자리 교체 후 나머지가 다른 항목
+    mapping.forEach(m => {
+      const before5 = m.before.substring(0, 5);
+      const after5 = m.after.substring(0, 5);
+      const beforeTail = m.before.substring(5);
+      const afterTail = m.after.substring(5);
+      if (beforeTail !== afterTail) {
+        exceptions.push({
+          before: m.before,
+          beforeName: m.beforeName,
+          after: m.after,
+          afterName: m.afterName
+        });
+      }
+    });
+  }
+
+  return displayMappings.concat(exceptions);
 }
 
 function getEventDateLabel(id) {
