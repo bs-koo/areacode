@@ -790,6 +790,8 @@ main.main-content { flex: 1; }
 .bjd-checkbox-group {
   min-width: 120px;
   flex: 0 0 auto;
+  align-self: flex-end;
+  padding-bottom: 8px;
 }
 .checkbox-label {
   display: flex;

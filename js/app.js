@@ -416,6 +416,14 @@ let bjdPageSize = 50;
 let bjdFilteredData = [];
 let bjdKeyword = '';
 
+// 성능 개선: 로딩 시 검색용 정규화 텍스트를 전처리
+const PROCESSED_BJD_DATA = BJD_DATA.map(row => {
+  const searchableText = normalize(row[1] + row[2] + row[3] + row[4]);
+  const searchableCode = normalize(row[0]);
+  return [...row, searchableText, searchableCode];
+});
+// PROCESSED_BJD_DATA 인덱스: 0-7은 원본, 8=정규화된 텍스트(시도+시군구+읍면동+리), 9=정규화된 코드
+
 function initBjdSection() {
   const keywordInput = document.getElementById('bjd-keyword');
   const searchBtn = document.getElementById('bjd-search-btn');
@@ -479,7 +487,7 @@ function searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv)
   const refLastDay = yyyymm ? getYYYYMMLastDay(yyyymm) : '';
   const refFirstDay = yyyymm ? getYYYYMMFirstDay(yyyymm) : '';
 
-  const filtered = BJD_DATA.filter(row => {
+  const filtered = PROCESSED_BJD_DATA.filter(row => {
     const createdDate = row[6] || '';
     const deletedDate = row[5] || '';
 
@@ -493,7 +501,6 @@ function searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv)
       if (deletedDate !== '') return false;
     } else if (!yyyymm && includeAbolished) {
       // 기준년월 없음 + 폐지포함: 현존 + 폐지 전부
-      // 필터 없음 (모두 통과)
     } else {
       // 기준년월 없음 + 폐지포함 OFF: 현재 현존만
       if (deletedDate !== '') return false;
@@ -502,10 +509,10 @@ function searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv)
     // 검색어가 없으면 기준년월 필터만 적용
     if (!normalizedKeyword) return true;
 
-    // 검색 대상 필터
+    // 검색 대상 필터 (전처리된 인덱스 활용: 8=텍스트, 9=코드)
     switch (filterType) {
       case 'code':
-        return normalize(row[0]).includes(normalizedKeyword);
+        return row[9].includes(normalizedKeyword);
       case 'sido':
         return normalize(row[1]).includes(normalizedKeyword);
       case 'sigungu':
@@ -515,11 +522,8 @@ function searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv)
       case 'ri':
         return normalize(row[4]).includes(normalizedKeyword);
       default: // all
-        return normalize(row[0]).includes(normalizedKeyword) ||
-               normalize(row[1]).includes(normalizedKeyword) ||
-               normalize(row[2]).includes(normalizedKeyword) ||
-               normalize(row[3]).includes(normalizedKeyword) ||
-               normalize(row[4]).includes(normalizedKeyword);
+        return row[8].includes(normalizedKeyword) ||
+               row[9].includes(normalizedKeyword);
     }
   });
 
@@ -575,16 +579,16 @@ function renderBjdPage(resultDiv) {
 
   const rows = pageData.map(row => {
     const rowClass = row[5] !== '' ? ' class="row-abolished"' : '';
-    return '<tr' + rowClass + '>' +
-      '<td><code>' + row[0] + '</code></td>' +
-      '<td>' + highlightMatch(row[1], bjdKeyword) + '</td>' +
-      '<td>' + highlightMatch(row[2], bjdKeyword) + '</td>' +
-      '<td>' + highlightMatch(row[3], bjdKeyword) + '</td>' +
-      '<td>' + highlightMatch(row[4], bjdKeyword) + '</td>' +
-      '<td>' + (row[6] || '') + '</td>' +
-      '<td>' + (row[5] || '') + '</td>' +
-      '<td>' + (row[7] ? '<code>' + row[7] + '</code>' : '') + '</td>' +
-      '</tr>';
+    return `<tr${rowClass}>
+      <td><code>${row[0]}</code></td>
+      <td>${highlightMatch(row[1], bjdKeyword)}</td>
+      <td>${highlightMatch(row[2], bjdKeyword)}</td>
+      <td>${highlightMatch(row[3], bjdKeyword)}</td>
+      <td>${highlightMatch(row[4], bjdKeyword)}</td>
+      <td>${row[6] || ''}</td>
+      <td>${row[5] || ''}</td>
+      <td>${row[7] ? `<code>${row[7]}</code>` : ''}</td>
+    </tr>`;
   }).join('');
 
   // 페이징 컨트롤 HTML
@@ -594,33 +598,33 @@ function renderBjdPage(resultDiv) {
     const isFirst = bjdCurrentPage === 1;
     const isLast = bjdCurrentPage === totalPages;
 
-    paginationHtml = '<div class="bjd-pagination">' +
-      '<div class="bjd-pagination-info">' +
-        '<span>총 <strong>' + totalCount + '</strong>건</span>' +
-        '<select class="bjd-page-size-select" id="bjd-page-size">' +
-          '<option value="50"' + (bjdPageSize === 50 ? ' selected' : '') + '>50건</option>' +
-          '<option value="100"' + (bjdPageSize === 100 ? ' selected' : '') + '>100건</option>' +
-        '</select>' +
-      '</div>' +
-      (showNav ? '<div class="bjd-pagination-nav">' +
-        '<button class="bjd-page-btn" data-action="first"' + (isFirst ? ' disabled' : '') + '>&laquo;</button>' +
-        '<button class="bjd-page-btn" data-action="prev"' + (isFirst ? ' disabled' : '') + '>&lsaquo;</button>' +
-        '<span class="bjd-page-indicator">' + bjdCurrentPage + ' / ' + totalPages + '</span>' +
-        '<button class="bjd-page-btn" data-action="next"' + (isLast ? ' disabled' : '') + '>&rsaquo;</button>' +
-        '<button class="bjd-page-btn" data-action="last"' + (isLast ? ' disabled' : '') + '>&raquo;</button>' +
-      '</div>' : '') +
-    '</div>';
+    paginationHtml = `<div class="bjd-pagination">
+      <div class="bjd-pagination-info">
+        <span>총 <strong>${totalCount}</strong>건</span>
+        <select class="bjd-page-size-select" id="bjd-page-size">
+          <option value="50"${bjdPageSize === 50 ? ' selected' : ''}>50건</option>
+          <option value="100"${bjdPageSize === 100 ? ' selected' : ''}>100건</option>
+        </select>
+      </div>
+      ${showNav ? `<div class="bjd-pagination-nav">
+        <button class="bjd-page-btn" data-action="first"${isFirst ? ' disabled' : ''}>&laquo;</button>
+        <button class="bjd-page-btn" data-action="prev"${isFirst ? ' disabled' : ''}>&lsaquo;</button>
+        <span class="bjd-page-indicator">${bjdCurrentPage} / ${totalPages}</span>
+        <button class="bjd-page-btn" data-action="next"${isLast ? ' disabled' : ''}>&rsaquo;</button>
+        <button class="bjd-page-btn" data-action="last"${isLast ? ' disabled' : ''}>&raquo;</button>
+      </div>` : ''}
+    </div>`;
   }
 
-  resultDiv.innerHTML =
-    '<div class="result-header"><strong>' + totalCount + '건 검색됨</strong></div>' +
-    '<div class="table-wrap">' +
-      '<table class="data-table">' +
-        '<thead><tr><th>법정동코드</th><th>시도명</th><th>시군구명</th><th>읍면동명</th><th>리명</th><th>생성일</th><th>삭제일</th><th>과거법정동코드</th></tr></thead>' +
-        '<tbody>' + rows + '</tbody>' +
-      '</table>' +
-    '</div>' +
-    paginationHtml;
+  resultDiv.innerHTML = `
+    <div class="result-header"><strong>${totalCount}건 검색됨</strong></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>법정동코드</th><th>시도명</th><th>시군구명</th><th>읍면동명</th><th>리명</th><th>생성일</th><th>삭제일</th><th>과거법정동코드</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    ${paginationHtml}`;
 
   // 이벤트 바인딩: 페이지 크기 변경
   const pageSizeSelect = document.getElementById('bjd-page-size');
