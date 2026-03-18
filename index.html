@@ -121,6 +121,17 @@
       <h2>법정동 검색</h2>
       <p>전국 법정동코드를 검색합니다. 시도명, 시군구명, 읍면동명, 리명으로 검색할 수 있습니다.</p>
       <p class="data-source">데이터 기준: 국토교통부 전국 법정동 (2025.08.07)</p>
+      <div class="bjd-help">
+        <details>
+          <summary>검색 조건 안내</summary>
+          <ul>
+            <li><strong>기준년월</strong> — 입력한 년월 시점에 유효한 법정동을 조회합니다. (생성일 ≤ 해당월 말일 AND 삭제일 없음 또는 삭제일 > 해당월 말일)</li>
+            <li><strong>폐지 포함</strong> — 체크 시 현재 폐지된 법정동도 결과에 포함합니다.</li>
+            <li><strong>기준년월 + 폐지 포함</strong> — 해당 시점에 유효했던 모든 법정동을 표시합니다. 이후 폐지된 항목도 포함되지만, 해당 시점 이전에 이미 폐지된 항목은 제외됩니다.<br>예) 202501 + 폐지 포함 → 2025년 2월 폐지 항목은 표시, 2024년 12월 폐지 항목은 미표시</li>
+            <li><strong>기준년월 + 폐지 미포함</strong> — 해당 시점에 유효했고 현재도 현존하는 법정동만 표시합니다.</li>
+          </ul>
+        </details>
+      </div>
     </div>
     <div class="query-form bjd-query-form">
       <div class="form-group">
