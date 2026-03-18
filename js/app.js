@@ -420,11 +420,16 @@ function initBjdSection() {
   const keywordInput = document.getElementById('bjd-keyword');
   const searchBtn = document.getElementById('bjd-search-btn');
   const checkbox = document.getElementById('bjd-include-abolished');
+  const filterSelect = document.getElementById('bjd-filter');
+  const yyyymmInput = document.getElementById('bjd-yyyymm');
   const resultDiv = document.getElementById('bjd-result');
 
-  searchBtn.addEventListener('click', () => searchBjd(keywordInput, checkbox, resultDiv));
+  searchBtn.addEventListener('click', () => searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv));
   keywordInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') searchBjd(keywordInput, checkbox, resultDiv);
+    if (e.key === 'Enter') searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv);
+  });
+  yyyymmInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv);
   });
 }
 
@@ -434,24 +439,80 @@ function normalize(str) {
   );
 }
 
-function searchBjd(keywordInput, checkbox, resultDiv) {
+function getYYYYMMLastDay(yyyymm) {
+  const year = parseInt(yyyymm.substring(0, 4), 10);
+  const month = parseInt(yyyymm.substring(4, 6), 10);
+  const lastDay = new Date(year, month, 0).getDate();
+  return yyyymm.substring(0, 4) + '-' + yyyymm.substring(4, 6) + '-' + String(lastDay).padStart(2, '0');
+}
+
+function getYYYYMMFirstDay(yyyymm) {
+  return yyyymm.substring(0, 4) + '-' + yyyymm.substring(4, 6) + '-01';
+}
+
+function searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv) {
   const keyword = keywordInput.value.trim();
-  if (!keyword) {
-    showError(resultDiv, '검색어를 입력하세요.');
+  const filterType = filterSelect.value;
+  const yyyymm = yyyymmInput.value.trim().replace(/[^0-9]/g, '');
+  const includeAbolished = checkbox.checked;
+
+  if (!keyword && !yyyymm) {
+    showError(resultDiv, '검색어 또는 기준년월을 입력하세요.');
     return;
   }
 
-  const normalizedKeyword = normalize(keyword);
-  const includeAbolished = checkbox.checked;
+  // 기준년월 유효성 검사
+  if (yyyymm && yyyymm.length !== 6) {
+    showError(resultDiv, '기준년월은 YYYYMM 형식으로 6자리를 입력하세요. (예: 202501)');
+    return;
+  }
+  if (yyyymm) {
+    const y = parseInt(yyyymm.substring(0, 4), 10);
+    const m = parseInt(yyyymm.substring(4, 6), 10);
+    if (y < 1900 || y > 2100 || m < 1 || m > 12) {
+      showError(resultDiv, '유효한 기준년월을 입력하세요.');
+      return;
+    }
+  }
+
+  const normalizedKeyword = keyword ? normalize(keyword) : '';
+  const refLastDay = yyyymm ? getYYYYMMLastDay(yyyymm) : '';
+  const refFirstDay = yyyymm ? getYYYYMMFirstDay(yyyymm) : '';
 
   const filtered = BJD_DATA.filter(row => {
-    // 폐지 필터: 삭제일자가 비어있지 않으면 폐지된 항목
-    if (!includeAbolished && row[5] !== '') return false;
-    // 시도명(1), 시군구명(2), 읍면동명(3), 리명(4) 개별 부분일치
-    return normalize(row[1]).includes(normalizedKeyword) ||
-           normalize(row[2]).includes(normalizedKeyword) ||
-           normalize(row[3]).includes(normalizedKeyword) ||
-           normalize(row[4]).includes(normalizedKeyword);
+    // 기준년월 필터: 생성일 <= 해당월 말일 AND (삭제일 없음 OR 삭제일 > 해당월 말일)
+    if (yyyymm) {
+      const createdDate = row[6] || '';
+      const deletedDate = row[5] || '';
+      if (createdDate && createdDate > refLastDay) return false;
+      if (deletedDate && deletedDate <= refLastDay) return false;
+    } else {
+      // 기준년월 미입력 시 기존 폐지 필터 적용
+      if (!includeAbolished && row[5] !== '') return false;
+    }
+
+    // 검색어가 없으면 기준년월 필터만 적용
+    if (!normalizedKeyword) return true;
+
+    // 검색 대상 필터
+    switch (filterType) {
+      case 'code':
+        return normalize(row[0]).includes(normalizedKeyword);
+      case 'sido':
+        return normalize(row[1]).includes(normalizedKeyword);
+      case 'sigungu':
+        return normalize(row[2]).includes(normalizedKeyword);
+      case 'eupmyeondong':
+        return normalize(row[3]).includes(normalizedKeyword);
+      case 'ri':
+        return normalize(row[4]).includes(normalizedKeyword);
+      default: // all
+        return normalize(row[0]).includes(normalizedKeyword) ||
+               normalize(row[1]).includes(normalizedKeyword) ||
+               normalize(row[2]).includes(normalizedKeyword) ||
+               normalize(row[3]).includes(normalizedKeyword) ||
+               normalize(row[4]).includes(normalizedKeyword);
+    }
   });
 
   if (filtered.length === 0) {
