@@ -410,6 +410,245 @@ function copyCode() {
   });
 }
 
+// ---- 섹션 4: 법정동 검색 ----
+let bjdCurrentPage = 1;
+let bjdPageSize = 50;
+let bjdFilteredData = [];
+let bjdKeyword = '';
+
+// 성능 개선: 로딩 시 검색용 정규화 텍스트를 전처리
+const PROCESSED_BJD_DATA = BJD_DATA.map(row => {
+  const searchableText = normalize(row[1] + row[2] + row[3] + row[4]);
+  const searchableCode = normalize(row[0]);
+  return [...row, searchableText, searchableCode];
+});
+// PROCESSED_BJD_DATA 인덱스: 0-7은 원본, 8=정규화된 텍스트(시도+시군구+읍면동+리), 9=정규화된 코드
+
+function initBjdSection() {
+  const keywordInput = document.getElementById('bjd-keyword');
+  const searchBtn = document.getElementById('bjd-search-btn');
+  const checkbox = document.getElementById('bjd-include-abolished');
+  const filterSelect = document.getElementById('bjd-filter');
+  const yyyymmInput = document.getElementById('bjd-yyyymm');
+  const resultDiv = document.getElementById('bjd-result');
+
+  searchBtn.addEventListener('click', () => searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv));
+  keywordInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv);
+  });
+  yyyymmInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv);
+  });
+}
+
+function normalize(str) {
+  return str.toLowerCase().replace(/[\uFF01-\uFF5E]/g, ch =>
+    String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)
+  );
+}
+
+function getYYYYMMLastDay(yyyymm) {
+  const year = parseInt(yyyymm.substring(0, 4), 10);
+  const month = parseInt(yyyymm.substring(4, 6), 10);
+  const lastDay = new Date(year, month, 0).getDate();
+  return yyyymm.substring(0, 4) + '-' + yyyymm.substring(4, 6) + '-' + String(lastDay).padStart(2, '0');
+}
+
+function getYYYYMMFirstDay(yyyymm) {
+  return yyyymm.substring(0, 4) + '-' + yyyymm.substring(4, 6) + '-01';
+}
+
+function searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv) {
+  const keyword = keywordInput.value.trim();
+  const filterType = filterSelect.value;
+  const yyyymm = yyyymmInput.value.trim().replace(/[^0-9]/g, '');
+  const includeAbolished = checkbox.checked;
+
+  if (!keyword && !yyyymm) {
+    showError(resultDiv, '검색어 또는 기준년월을 입력하세요.');
+    return;
+  }
+
+  // 기준년월 유효성 검사
+  if (yyyymm && yyyymm.length !== 6) {
+    showError(resultDiv, '기준년월은 YYYYMM 형식으로 6자리를 입력하세요. (예: 202501)');
+    return;
+  }
+  if (yyyymm) {
+    const y = parseInt(yyyymm.substring(0, 4), 10);
+    const m = parseInt(yyyymm.substring(4, 6), 10);
+    if (y < 1900 || y > 2100 || m < 1 || m > 12) {
+      showError(resultDiv, '유효한 기준년월을 입력하세요.');
+      return;
+    }
+  }
+
+  const normalizedKeyword = keyword ? normalize(keyword) : '';
+  const refLastDay = yyyymm ? getYYYYMMLastDay(yyyymm) : '';
+  const refFirstDay = yyyymm ? getYYYYMMFirstDay(yyyymm) : '';
+
+  const filtered = PROCESSED_BJD_DATA.filter(row => {
+    const createdDate = row[6] || '';
+    const deletedDate = row[5] || '';
+
+    if (yyyymm && includeAbolished) {
+      // 기준년월 + 폐지포함: 해당 시점에 유효했던 전부 (현재 폐지 포함)
+      if (createdDate && createdDate > refLastDay) return false;
+      if (deletedDate && deletedDate <= refLastDay) return false;
+    } else if (yyyymm && !includeAbolished) {
+      // 기준년월 + 폐지포함 OFF: 해당 시점 유효 + 현재도 현존
+      if (createdDate && createdDate > refLastDay) return false;
+      if (deletedDate !== '') return false;
+    } else if (!yyyymm && includeAbolished) {
+      // 기준년월 없음 + 폐지포함: 현존 + 폐지 전부
+    } else {
+      // 기준년월 없음 + 폐지포함 OFF: 현재 현존만
+      if (deletedDate !== '') return false;
+    }
+
+    // 검색어가 없으면 기준년월 필터만 적용
+    if (!normalizedKeyword) return true;
+
+    // 검색 대상 필터 (전처리된 인덱스 활용: 8=텍스트, 9=코드)
+    switch (filterType) {
+      case 'code':
+        return row[9].includes(normalizedKeyword);
+      case 'sido':
+        return normalize(row[1]).includes(normalizedKeyword);
+      case 'sigungu':
+        return normalize(row[2]).includes(normalizedKeyword);
+      case 'eupmyeondong':
+        return normalize(row[3]).includes(normalizedKeyword);
+      case 'ri':
+        return normalize(row[4]).includes(normalizedKeyword);
+      default: // all
+        return row[8].includes(normalizedKeyword) ||
+               row[9].includes(normalizedKeyword);
+    }
+  });
+
+  if (filtered.length === 0) {
+    bjdFilteredData = [];
+    showError(resultDiv, '검색 결과가 없습니다.');
+    return;
+  }
+
+  bjdFilteredData = filtered;
+  bjdKeyword = keyword;
+  bjdCurrentPage = 1;
+  renderBjdPage(resultDiv);
+}
+
+function highlightMatch(text, keyword) {
+  // HTML escape 먼저
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  if (!keyword) return escaped;
+
+  const normalizedEscaped = normalize(escaped);
+  const normalizedKeyword = normalize(keyword);
+
+  let result = '';
+  let i = 0;
+  while (i < escaped.length) {
+    const pos = normalizedEscaped.indexOf(normalizedKeyword, i);
+    if (pos === -1) {
+      result += escaped.substring(i);
+      break;
+    }
+    result += escaped.substring(i, pos);
+    result += '<mark>' + escaped.substring(pos, pos + normalizedKeyword.length) + '</mark>';
+    i = pos + normalizedKeyword.length;
+  }
+
+  return result;
+}
+
+function renderBjdPage(resultDiv) {
+  const totalCount = bjdFilteredData.length;
+  const totalPages = Math.ceil(totalCount / bjdPageSize);
+  if (bjdCurrentPage > totalPages) bjdCurrentPage = totalPages;
+  if (bjdCurrentPage < 1) bjdCurrentPage = 1;
+
+  const startIdx = (bjdCurrentPage - 1) * bjdPageSize;
+  const endIdx = Math.min(startIdx + bjdPageSize, totalCount);
+  const pageData = bjdFilteredData.slice(startIdx, endIdx);
+
+  const rows = pageData.map(row => {
+    const rowClass = row[5] !== '' ? ' class="row-abolished"' : '';
+    return `<tr${rowClass}>
+      <td><code>${row[0]}</code></td>
+      <td>${highlightMatch(row[1], bjdKeyword)}</td>
+      <td>${highlightMatch(row[2], bjdKeyword)}</td>
+      <td>${highlightMatch(row[3], bjdKeyword)}</td>
+      <td>${highlightMatch(row[4], bjdKeyword)}</td>
+      <td>${row[6] || ''}</td>
+      <td>${row[5] || ''}</td>
+      <td>${row[7] ? `<code>${row[7]}</code>` : ''}</td>
+    </tr>`;
+  }).join('');
+
+  // 페이징 컨트롤 HTML
+  let paginationHtml = '';
+  if (totalCount > 0) {
+    const showNav = totalPages > 1;
+    const isFirst = bjdCurrentPage === 1;
+    const isLast = bjdCurrentPage === totalPages;
+
+    paginationHtml = `<div class="bjd-pagination">
+      <div class="bjd-pagination-info">
+        <span>총 <strong>${totalCount}</strong>건</span>
+        <select class="bjd-page-size-select" id="bjd-page-size">
+          <option value="50"${bjdPageSize === 50 ? ' selected' : ''}>50건</option>
+          <option value="100"${bjdPageSize === 100 ? ' selected' : ''}>100건</option>
+        </select>
+      </div>
+      ${showNav ? `<div class="bjd-pagination-nav">
+        <button class="bjd-page-btn" data-action="first"${isFirst ? ' disabled' : ''}>&laquo;</button>
+        <button class="bjd-page-btn" data-action="prev"${isFirst ? ' disabled' : ''}>&lsaquo;</button>
+        <span class="bjd-page-indicator">${bjdCurrentPage} / ${totalPages}</span>
+        <button class="bjd-page-btn" data-action="next"${isLast ? ' disabled' : ''}>&rsaquo;</button>
+        <button class="bjd-page-btn" data-action="last"${isLast ? ' disabled' : ''}>&raquo;</button>
+      </div>` : ''}
+    </div>`;
+  }
+
+  resultDiv.innerHTML = `
+    <div class="result-header"><strong>${totalCount}건 검색됨</strong></div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>법정동코드</th><th>시도명</th><th>시군구명</th><th>읍면동명</th><th>리명</th><th>생성일</th><th>삭제일</th><th>과거법정동코드</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    ${paginationHtml}`;
+
+  // 이벤트 바인딩: 페이지 크기 변경
+  const pageSizeSelect = document.getElementById('bjd-page-size');
+  if (pageSizeSelect) {
+    pageSizeSelect.addEventListener('change', e => {
+      bjdPageSize = parseInt(e.target.value, 10);
+      bjdCurrentPage = 1;
+      renderBjdPage(resultDiv);
+    });
+  }
+
+  // 이벤트 바인딩: 네비게이션 버튼
+  resultDiv.querySelectorAll('.bjd-page-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      if (action === 'first') bjdCurrentPage = 1;
+      else if (action === 'prev') bjdCurrentPage = Math.max(1, bjdCurrentPage - 1);
+      else if (action === 'next') bjdCurrentPage = Math.min(totalPages, bjdCurrentPage + 1);
+      else if (action === 'last') bjdCurrentPage = totalPages;
+      renderBjdPage(resultDiv);
+    });
+  });
+}
+
 // ---- 공통 유틸 ----
 function formatYM(yyyymm) {
   return yyyymm.substring(0, 4) + '년 ' + yyyymm.substring(4, 6) + '월';
@@ -425,4 +664,5 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTimeline();
   initSidoSection();
   initConvertSection();
+  initBjdSection();
 });

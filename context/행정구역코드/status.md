@@ -23,6 +23,19 @@
 | FR-10 | 시도코드↔시도명 양방향 검색 | ✅ | applySidoFilter() |
 | FR-11 | 코드 표시 자릿수 조정 (시도 2자리, 시군구 5자리, 구 신설 10자리) | ✅ | displayLevel 'adm' 분기 추가 |
 | FR-12 | 변환 코드 생성도 자릿수 기준 적용 | ✅ | adm은 표시=코드생성 동일 (읍면동 전체) |
+| FR-13 | 법정동 검색 탭 추가 | ✅ | PR #6 initBjdSection() |
+| FR-14 | CSV→JS 변환 (BJD_DATA 49,878건) | ✅ | PR #6 scripts/csv-to-js.js → js/bjd.js |
+| FR-15 | 시도/시군구/읍면동/리명 부분일치 검색 | ✅ | PR #6 searchBjd() |
+| FR-16 | 현존/폐지 필터 체크박스 | ✅ | PR #6 bjd-include-abolished |
+| FR-17 | 결과 테이블 6컬럼 | ✅ | PR #6 renderBjdResult() |
+| FR-18 | 빈 검색어 안내 메시지 | ✅ | PR #6 showError() |
+| FR-19 | 0건 결과 안내 메시지 | ✅ | PR #6 showError() |
+| FR-20 | 결과 건수 카운트 표시 | ✅ | PR #6 result-header |
+| FR-21 | 500건 초과 제한 + 경고 | ✅ | PR #6 warning-msg |
+| FR-22 | Enter 키 검색 | ✅ | PR #6 keydown 이벤트 |
+| FR-23 | 대소문자/전반각 무시 검색 | ✅ | PR #6 normalize() |
+| FR-24 | 폐지 행 스타일 구분 | ✅ | PR #6 row-abolished |
+| FR-25 | 검색어 하이라이트 | ✅ | PR #6 highlightMatch() |
 
 ## 데이터 정합성
 

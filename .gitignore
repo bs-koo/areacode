@@ -3,6 +3,7 @@
 
 # Local tool state
 .omc/
+.dev/
 
 requirements/
 .research/
