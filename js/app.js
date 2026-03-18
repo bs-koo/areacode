@@ -505,7 +505,6 @@ function renderBjdPage(resultDiv) {
   const pageData = bjdFilteredData.slice(startIdx, endIdx);
 
   const rows = pageData.map(row => {
-    const status = row[5] === '' ? '현존' : '폐지';
     const rowClass = row[5] !== '' ? ' class="row-abolished"' : '';
     return '<tr' + rowClass + '>' +
       '<td><code>' + row[0] + '</code></td>' +
@@ -516,7 +515,6 @@ function renderBjdPage(resultDiv) {
       '<td>' + (row[6] || '') + '</td>' +
       '<td>' + (row[5] || '') + '</td>' +
       '<td>' + (row[7] ? '<code>' + row[7] + '</code>' : '') + '</td>' +
-      '<td>' + status + '</td>' +
       '</tr>';
   }).join('');
 
@@ -549,7 +547,7 @@ function renderBjdPage(resultDiv) {
     '<div class="result-header"><strong>' + totalCount + '건 검색됨</strong></div>' +
     '<div class="table-wrap">' +
       '<table class="data-table">' +
-        '<thead><tr><th>법정동코드</th><th>시도명</th><th>시군구명</th><th>읍면동명</th><th>리명</th><th>생성일</th><th>삭제일</th><th>과거법정동코드</th><th>상태</th></tr></thead>' +
+        '<thead><tr><th>법정동코드</th><th>시도명</th><th>시군구명</th><th>읍면동명</th><th>리명</th><th>생성일</th><th>삭제일</th><th>과거법정동코드</th></tr></thead>' +
         '<tbody>' + rows + '</tbody>' +
       '</table>' +
     '</div>' +
