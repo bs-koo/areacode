@@ -431,17 +431,6 @@ function initBjdSection() {
   yyyymmInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv);
   });
-  // 기준년월 입력 시 "폐지 포함" 체크박스 비활성화
-  yyyymmInput.addEventListener('input', () => {
-    const hasYM = yyyymmInput.value.trim().replace(/[^0-9]/g, '').length > 0;
-    checkbox.disabled = hasYM;
-    if (hasYM) {
-      checkbox.checked = false;
-      checkbox.parentElement.title = '기준년월 입력 시 날짜 기반으로 자동 필터링됩니다';
-    } else {
-      checkbox.parentElement.title = '';
-    }
-  });
 }
 
 function normalize(str) {
@@ -491,15 +480,23 @@ function searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv)
   const refFirstDay = yyyymm ? getYYYYMMFirstDay(yyyymm) : '';
 
   const filtered = BJD_DATA.filter(row => {
-    // 기준년월 필터: 생성일 <= 해당월 말일 AND (삭제일 없음 OR 삭제일 > 해당월 말일)
-    if (yyyymm) {
-      const createdDate = row[6] || '';
-      const deletedDate = row[5] || '';
+    const createdDate = row[6] || '';
+    const deletedDate = row[5] || '';
+
+    if (yyyymm && includeAbolished) {
+      // 기준년월 + 폐지포함: 해당 시점에 유효했던 전부 (현재 폐지 포함)
       if (createdDate && createdDate > refLastDay) return false;
       if (deletedDate && deletedDate <= refLastDay) return false;
+    } else if (yyyymm && !includeAbolished) {
+      // 기준년월 + 폐지포함 OFF: 해당 시점 유효 + 현재도 현존
+      if (createdDate && createdDate > refLastDay) return false;
+      if (deletedDate !== '') return false;
+    } else if (!yyyymm && includeAbolished) {
+      // 기준년월 없음 + 폐지포함: 현존 + 폐지 전부
+      // 필터 없음 (모두 통과)
     } else {
-      // 기준년월 미입력 시 기존 폐지 필터 적용
-      if (!includeAbolished && row[5] !== '') return false;
+      // 기준년월 없음 + 폐지포함 OFF: 현재 현존만
+      if (deletedDate !== '') return false;
     }
 
     // 검색어가 없으면 기준년월 필터만 적용
