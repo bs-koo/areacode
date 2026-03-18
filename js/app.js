@@ -431,6 +431,17 @@ function initBjdSection() {
   yyyymmInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv);
   });
+  // 기준년월 입력 시 "폐지 포함" 체크박스 비활성화
+  yyyymmInput.addEventListener('input', () => {
+    const hasYM = yyyymmInput.value.trim().replace(/[^0-9]/g, '').length > 0;
+    checkbox.disabled = hasYM;
+    if (hasYM) {
+      checkbox.checked = false;
+      checkbox.parentElement.title = '기준년월 입력 시 날짜 기반으로 자동 필터링됩니다';
+    } else {
+      checkbox.parentElement.title = '';
+    }
+  });
 }
 
 function normalize(str) {
