@@ -926,10 +926,11 @@ td.code-cell.is-changed { border-left: 2px solid var(--diff-line); }
    (리명·삭제일은 대부분 비어 있어 균등 분배하면 공간만 낭비된다) */
 #bjd-result .data-table th:nth-child(1),
 #bjd-result .data-table td:nth-child(1) { width: 116px; }
+/* YYYY-MM-DD 10자가 한 줄에 들어가야 한다 */
 #bjd-result .data-table th:nth-child(6),
 #bjd-result .data-table td:nth-child(6),
 #bjd-result .data-table th:nth-child(7),
-#bjd-result .data-table td:nth-child(7) { width: 96px; }
+#bjd-result .data-table td:nth-child(7) { width: 108px; white-space: nowrap; }
 #bjd-result .data-table th:nth-child(8),
 #bjd-result .data-table td:nth-child(8) { width: 128px; }
 
