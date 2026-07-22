@@ -269,12 +269,14 @@ function runConvert(fromInput, toInput) {
     codeSection.style.display = 'none';
     return;
   }
-  if (parseInt(from) >= parseInt(to)) {
-    showError(resultDiv, '기준년월(From)이 목표년월(To)보다 이전이어야 합니다.');
+  if (parseInt(from, 10) === parseInt(to, 10)) {
+    showError(resultDiv, '기준년월과 목표년월이 같습니다. 서로 다른 시점을 입력하세요.');
     codeSection.style.display = 'none';
     return;
   }
 
+  // From이 To보다 나중이면 최근 → 과거로 되돌리는 변환이다.
+  const isReverse = parseInt(from, 10) > parseInt(to, 10);
   const events = getChangesBetween(from, to);
 
   if (events.length === 0) {
@@ -293,9 +295,14 @@ function runConvert(fromInput, toInput) {
   let html = '';
 
   events.forEach(ev => {
-    const mappings = getEventMappings(ev);
+    // 매핑은 항상 정방향으로 만든 뒤, 역방향이면 전/후를 뒤집는다.
+    const mappings = isReverse ? reverseMappings(getEventMappings(ev)) : getEventMappings(ev);
+    const codegenMappings = isReverse
+      ? reverseMappings(getCodegenMappings(ev))
+      : getCodegenMappings(ev);
+
     allMappings = allMappings.concat(mappings);
-    allCodegenMappings = allCodegenMappings.concat(getCodegenMappings(ev));
+    allCodegenMappings = allCodegenMappings.concat(codegenMappings);
     titleParts.push(ev.title);
 
     const rows = mappings.map(m => {
@@ -324,7 +331,7 @@ function runConvert(fromInput, toInput) {
         </button>
         <div class="table-wrap">
           <table class="data-table mapping-table">
-            <thead><tr><th>이전 코드</th><th>이전 명칭</th><th></th><th>변경 코드</th><th>변경 명칭</th></tr></thead>
+            <thead><tr><th>변환 전 코드</th><th>변환 전 명칭</th><th></th><th>변환 후 코드</th><th>변환 후 명칭</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
@@ -332,9 +339,17 @@ function runConvert(fromInput, toInput) {
   });
 
   currentMappings = allCodegenMappings; // 변환 코드 생성에는 전체 매핑 사용
-  currentTitle = titleParts.join(' + ');
+  currentTitle = titleParts.join(' + ') + (isReverse ? ' (역방향)' : '');
 
-  resultDiv.innerHTML = html;
+  // 역방향은 흔치 않은 조회이므로 무엇을 보고 있는지 분명히 알린다
+  const directionNotice = isReverse
+    ? `<div class="direction-notice">
+         <strong>최근 → 과거</strong> 방향으로 되돌리는 변환입니다.
+         <span>${formatYM(from)} 기준 코드를 ${formatYM(to)} 기준으로 바꿉니다.</span>
+       </div>`
+    : '';
+
+  resultDiv.innerHTML = directionNotice + html;
   codeSection.style.display = 'block';
 
   // 이벤트 블록 접기/펼치기
@@ -423,6 +438,21 @@ function getCodegenMappings(ev) {
   }
 
   return displayMappings.concat(exceptions);
+}
+
+/**
+ * 매핑의 전/후를 서로 바꾼다 (최근 → 과거 방향 변환용).
+ * 정방향 매핑이 1:N인 경우(부천 시군구 등) 역방향은 N:1이 되어 오히려 결정적이다.
+ * 다만 정방향이 N:1이면 역방향에서 키가 겹칠 수 있으므로, 그런 이벤트가 생기면
+ * 코드 생성 결과에서 뒤 항목이 앞 항목을 덮는다는 점에 유의해야 한다.
+ */
+function reverseMappings(mappings) {
+  return mappings.map(m => ({
+    before: m.after,
+    beforeName: m.afterName,
+    after: m.before,
+    afterName: m.beforeName
+  }));
 }
 
 function getEventDateLabel(id) {

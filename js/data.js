@@ -366,13 +366,20 @@ const CODE_CHANGE_EVENTS = [
   }
 ];
 
-// 두 YYYYMM 사이에 적용되는 변경 이벤트 목록 반환
+// 두 YYYYMM 사이에 적용되는 변경 이벤트 목록 반환.
+// 역방향(최근 → 과거)도 지원한다. 구간은 방향과 무관하게 (작은 값, 큰 값]으로 잡고,
+// 역방향이면 최근 이벤트부터 되돌리는 순서가 자연스러우므로 뒤집어서 돌려준다.
 function getChangesBetween(fromYYYYMM, toYYYYMM) {
   const from = parseInt(fromYYYYMM, 10);
   const to = parseInt(toYYYYMM, 10);
-  if (from >= to) return [];
-  return CODE_CHANGE_EVENTS.filter(e => {
+  if (from === to) return [];
+
+  const lo = Math.min(from, to);
+  const hi = Math.max(from, to);
+  const events = CODE_CHANGE_EVENTS.filter(e => {
     const em = parseInt(e.yyyymm, 10);
-    return em > from && em <= to;
+    return em > lo && em <= hi;
   });
+
+  return from > to ? events.slice().reverse() : events;
 }
