@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>행정구역코드 변환 도구</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ctext x='16' y='22' font-family='sans-serif' font-size='15' font-weight='700' fill='%23fbbf24' text-anchor='middle'%3E%EC%BD%94%3C/text%3E%3C/svg%3E">
+  <link rel="preload" href="fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- ?v= 는 배포 후 브라우저 캐시 무효화용. CSS/JS를 고칠 때 같이 올린다. -->
+  <link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
 
@@ -17,17 +20,21 @@
 </header>
 
 <nav class="nav-bar">
-  <div class="nav-inner">
-    <button class="nav-btn active" data-target="section-timeline">
+  <div class="nav-inner" role="tablist" aria-label="기능 선택">
+    <button class="nav-btn active" data-target="section-timeline"
+            role="tab" id="tab-timeline" aria-controls="section-timeline" aria-selected="true">
       <span class="num">1</span>변경 이력
     </button>
-    <button class="nav-btn" data-target="section-sido">
+    <button class="nav-btn" data-target="section-sido"
+            role="tab" id="tab-sido" aria-controls="section-sido" aria-selected="false" tabindex="-1">
       <span class="num">2</span>시도코드 조회
     </button>
-    <button class="nav-btn" data-target="section-convert">
+    <button class="nav-btn" data-target="section-convert"
+            role="tab" id="tab-convert" aria-controls="section-convert" aria-selected="false" tabindex="-1">
       <span class="num">3</span>지역코드 변환
     </button>
-    <button class="nav-btn" data-target="section-bjd">
+    <button class="nav-btn" data-target="section-bjd"
+            role="tab" id="tab-bjd" aria-controls="section-bjd" aria-selected="false" tabindex="-1">
       <span class="num">4</span>법정동 검색
     </button>
   </div>
@@ -36,7 +43,7 @@
 <main class="main-content">
 
   <!-- ===== 섹션 1: 변경 이력 타임라인 ===== -->
-  <section id="section-timeline" class="section active">
+  <section id="section-timeline" class="section active" role="tabpanel" aria-labelledby="tab-timeline" tabindex="0">
     <div class="section-heading">
       <h2>행정구역 변경 이력</h2>
       <p>최근 시행된 주요 행정구역 변경 사항을 시간순으로 확인합니다.</p>
@@ -47,7 +54,7 @@
   </section>
 
   <!-- ===== 섹션 2: 시도코드 조회 ===== -->
-  <section id="section-sido" class="section">
+  <section id="section-sido" class="section" role="tabpanel" aria-labelledby="tab-sido" tabindex="0">
     <div class="section-heading">
       <h2>시도코드 조회</h2>
       <p>특정 시점에 유효한 17개 시도코드와 시도명을 조회합니다. 변경된 항목은 하이라이트됩니다.</p>
@@ -72,7 +79,7 @@
   </section>
 
   <!-- ===== 섹션 3: 지역코드 변환 ===== -->
-  <section id="section-convert" class="section">
+  <section id="section-convert" class="section" role="tabpanel" aria-labelledby="tab-convert" tabindex="0">
     <div class="section-heading">
       <h2>지역코드 변환</h2>
       <p>두 시점 사이에 변경된 행정구역코드 매핑을 확인하고, 변환 코드를 생성합니다.</p>
@@ -116,7 +123,7 @@
   </section>
 
   <!-- ===== 섹션 4: 법정동 검색 ===== -->
-  <section id="section-bjd" class="section">
+  <section id="section-bjd" class="section" role="tabpanel" aria-labelledby="tab-bjd" tabindex="0">
     <div class="section-heading">
       <h2>법정동 검색</h2>
       <p>전국 법정동코드를 검색합니다. 시도명, 시군구명, 읍면동명, 리명으로 검색할 수 있습니다.</p>
@@ -169,9 +176,9 @@
   <p>GX 사업본부 데이터플랫폼 | 행정안전부 공식 데이터 기반</p>
 </footer>
 
-<script src="js/data.js"></script>
-<script src="js/bjd.js"></script>
-<script src="js/codegen.js"></script>
-<script src="js/app.js"></script>
+<script src="js/data.js?v=4"></script>
+<script src="js/bjd.js?v=4"></script>
+<script src="js/codegen.js?v=4"></script>
+<script src="js/app.js?v=4"></script>
 </body>
 </html>
