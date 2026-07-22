@@ -54,6 +54,18 @@ const CHANGE_EVENTS = [
     tags: ['구 신설', '행정동 재편'],
     sidoChange: null
   },
+  // 같은 2026.07.01 시행이다. 타임라인은 이 배열을 뒤집어 최신순으로 그리므로,
+  // 더 큰 변경(시도 통합)이 위에 오도록 인천을 먼저 둔다.
+  {
+    id: 'incheon',
+    date: '2026-07-01',
+    dateLabel: '2026.07.01',
+    title: '인천시 자치구 재편',
+    description: '인천광역시 중구·동구·서구가 폐지되고 제물포구·영종구·서해구·검단구 4개 자치구가 신설되었습니다.',
+    impact: { sido: null, sigungu: 4, eupmyeondong: 83 },
+    tags: ['자치구 신설', '자치구 폐지'],
+    sidoChange: null
+  },
   {
     id: 'jeonnam-gwangju',
     date: '2026-07-01',
@@ -67,16 +79,6 @@ const CHANGE_EVENTS = [
       { before: '29', beforeName: '광주광역시', after: '12', afterName: '전남광주통합특별시' },
       { before: '46', beforeName: '전라남도', after: '12', afterName: '전남광주통합특별시' }
     ]
-  },
-  {
-    id: 'incheon',
-    date: '2026-07-01',
-    dateLabel: '2026.07.01',
-    title: '인천시 자치구 재편',
-    description: '인천광역시 중구·동구·서구가 폐지되고 제물포구·영종구·서해구·검단구 4개 자치구가 신설되었습니다.',
-    impact: { sido: null, sigungu: 4, eupmyeondong: 83 },
-    tags: ['자치구 신설', '자치구 폐지'],
-    sidoChange: null
   }
 ];
 
