@@ -4,16 +4,36 @@
 
 // ---- 탭 네비게이션 ----
 function initTabs() {
-  const navBtns = document.querySelectorAll('.nav-btn');
+  const navBtns = Array.from(document.querySelectorAll('.nav-btn'));
   const sections = document.querySelectorAll('.section');
+  const main = document.querySelector('.main-content');
 
-  navBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.target;
-      navBtns.forEach(b => b.classList.remove('active'));
-      sections.forEach(s => s.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(target).classList.add('active');
+  function activate(btn) {
+    const target = btn.dataset.target;
+    navBtns.forEach(b => {
+      const on = b === btn;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+    });
+    sections.forEach(s => s.classList.toggle('active', s.id === target));
+    // 법정동 검색만 8컬럼이라 넓은 폭을 쓴다
+    if (main) main.classList.toggle('wide', target === 'section-bjd');
+  }
+
+  navBtns.forEach((btn, i) => {
+    btn.addEventListener('click', () => activate(btn));
+    // tablist 키보드 규약: 좌우 화살표로 탭 이동
+    btn.addEventListener('keydown', e => {
+      let next = null;
+      if (e.key === 'ArrowRight') next = navBtns[(i + 1) % navBtns.length];
+      else if (e.key === 'ArrowLeft') next = navBtns[(i - 1 + navBtns.length) % navBtns.length];
+      else if (e.key === 'Home') next = navBtns[0];
+      else if (e.key === 'End') next = navBtns[navBtns.length - 1];
+      if (!next) return;
+      e.preventDefault();
+      activate(next);
+      next.focus();
     });
   });
 }
@@ -31,13 +51,16 @@ function renderTimeline() {
 
     const tagsHtml = ev.tags.map(t => `<span class="tag">${t}</span>`).join('');
 
-    const codeChangeHtml = ev.sidoChange
-      ? `<div class="code-change">
-           <span class="code-badge old">${ev.sidoChange.before} ${ev.sidoChange.beforeName}</span>
-           <span class="arrow">→</span>
-           <span class="code-badge new">${ev.sidoChange.after} ${ev.sidoChange.afterName}</span>
-         </div>`
-      : '';
+    // 시도 변경 표시 — 단건(sidoChange)과 다건(sidoChanges)을 모두 받는다.
+    // 광주·전남 통합처럼 두 시도가 하나로 합쳐지는 경우가 있어 배열이 필요하다.
+    const sidoChanges = ev.sidoChanges || (ev.sidoChange ? [ev.sidoChange] : []);
+    const codeChangeHtml = sidoChanges.map(ch =>
+      `<div class="code-change">
+         <span class="code-badge old">${ch.before} ${ch.beforeName}</span>
+         <span class="arrow">→</span>
+         <span class="code-badge new">${ch.after} ${ch.afterName}</span>
+       </div>`
+    ).join('');
 
     return `
       <div class="timeline-item" style="--i:${i}">
@@ -227,6 +250,9 @@ function initConvertSection() {
 let currentMappings = [];
 let currentTitle = '';
 
+// 이 건수를 넘는 이벤트는 접은 상태로 렌더링한다
+const EVENT_COLLAPSE_THRESHOLD = 10;
+
 function runConvert(fromInput, toInput) {
   const resultDiv = document.getElementById('convert-result');
   const codeSection = document.getElementById('code-gen-section');
@@ -268,23 +294,30 @@ function runConvert(fromInput, toInput) {
     allCodegenMappings = allCodegenMappings.concat(getCodegenMappings(ev));
     titleParts.push(ev.title);
 
-    const rows = mappings.map(m =>
-      `<tr>
-        <td><code>${m.before}</code></td>
-        <td>${m.beforeName}</td>
+    const rows = mappings.map(m => {
+      // 바뀐 자릿수만 강조 — 10자리 코드를 눈으로 대조하지 않아도 되게 한다
+      const changed = m.before.length === m.after.length && m.before !== m.after;
+      const cellClass = changed ? 'code-cell is-changed' : 'code-cell';
+      return `<tr>
+        <td class="code-cell"><code>${markDigitDiff(m.before, m.after)}</code></td>
+        <td>${escapeHtml(m.beforeName)}</td>
         <td class="arrow-cell">→</td>
-        <td><code>${m.after}</code></td>
-        <td>${m.afterName}</td>
-      </tr>`
-    ).join('');
+        <td class="${cellClass}"><code>${markDigitDiff(m.after, m.before)}</code></td>
+        <td>${escapeHtml(m.afterName)}</td>
+      </tr>`;
+    }).join('');
+
+    // 건수가 많은 이벤트(화성 29건 등)는 접어서 시작한다
+    const collapsed = mappings.length > EVENT_COLLAPSE_THRESHOLD;
 
     html += `
-      <div class="event-block">
-        <div class="event-header">
+      <div class="event-block${collapsed ? ' is-collapsed' : ''}">
+        <button type="button" class="event-header" aria-expanded="${collapsed ? 'false' : 'true'}">
+          <span class="event-toggle" aria-hidden="true">▶</span>
           <span class="event-date">${getEventDateLabel(ev.id)}</span>
-          <span class="event-name">${ev.title}</span>
+          <span class="event-name">${escapeHtml(ev.title)}</span>
           <span class="event-count">${mappings.length}건</span>
-        </div>
+        </button>
         <div class="table-wrap">
           <table class="data-table mapping-table">
             <thead><tr><th>이전 코드</th><th>이전 명칭</th><th></th><th>변경 코드</th><th>변경 명칭</th></tr></thead>
@@ -299,6 +332,15 @@ function runConvert(fromInput, toInput) {
 
   resultDiv.innerHTML = html;
   codeSection.style.display = 'block';
+
+  // 이벤트 블록 접기/펼치기
+  resultDiv.querySelectorAll('.event-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const block = header.closest('.event-block');
+      const nowCollapsed = block.classList.toggle('is-collapsed');
+      header.setAttribute('aria-expanded', nowCollapsed ? 'false' : 'true');
+    });
+  });
 
   // 현재 선택된 언어 탭으로 코드 렌더링
   const activeLang = document.querySelector('.lang-tab.active')?.dataset.lang || 'python';
@@ -541,10 +583,7 @@ function searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv)
 
 function highlightMatch(text, keyword) {
   // HTML escape 먼저
-  const escaped = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  const escaped = escapeHtml(text);
 
   if (!keyword) return escaped;
 
@@ -652,6 +691,42 @@ function renderBjdPage(resultDiv) {
 // ---- 공통 유틸 ----
 function formatYM(yyyymm) {
   return yyyymm.substring(0, 4) + '년 ' + yyyymm.substring(4, 6) + '월';
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * 두 코드를 자리별로 비교해 바뀐 부분을 <mark>로 감싼다.
+ * 예) markDigitDiff('4159125600', '4159025600') → 4159<mark>1</mark>25600
+ *
+ * 첫 불일치부터 마지막 불일치까지를 하나의 구간으로 묶는다.
+ * 부천처럼 코드가 전면 재부여된 경우(4119060300 → 4119200000) 자리별로 끊어 칠하면
+ * 우연히 일치하는 자리 때문에 하이라이트가 조각나 오히려 읽기 어렵기 때문이다.
+ * 자릿수가 다르면 자리 비교가 의미 없으므로 원문을 그대로 돌려준다.
+ */
+function markDigitDiff(text, other) {
+  const a = String(text);
+  const b = String(other);
+  if (!a || !b || a.length !== b.length) return escapeHtml(a);
+
+  let first = -1;
+  let last = -1;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      if (first === -1) first = i;
+      last = i;
+    }
+  }
+  if (first === -1) return escapeHtml(a);
+
+  return escapeHtml(a.slice(0, first))
+    + '<mark class="digit-diff">' + escapeHtml(a.slice(first, last + 1)) + '</mark>'
+    + escapeHtml(a.slice(last + 1));
 }
 
 function showError(container, msg) {
