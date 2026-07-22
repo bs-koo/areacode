@@ -51,13 +51,16 @@ function renderTimeline() {
 
     const tagsHtml = ev.tags.map(t => `<span class="tag">${t}</span>`).join('');
 
-    const codeChangeHtml = ev.sidoChange
-      ? `<div class="code-change">
-           <span class="code-badge old">${ev.sidoChange.before} ${ev.sidoChange.beforeName}</span>
-           <span class="arrow">→</span>
-           <span class="code-badge new">${ev.sidoChange.after} ${ev.sidoChange.afterName}</span>
-         </div>`
-      : '';
+    // 시도 변경 표시 — 단건(sidoChange)과 다건(sidoChanges)을 모두 받는다.
+    // 광주·전남 통합처럼 두 시도가 하나로 합쳐지는 경우가 있어 배열이 필요하다.
+    const sidoChanges = ev.sidoChanges || (ev.sidoChange ? [ev.sidoChange] : []);
+    const codeChangeHtml = sidoChanges.map(ch =>
+      `<div class="code-change">
+         <span class="code-badge old">${ch.before} ${ch.beforeName}</span>
+         <span class="arrow">→</span>
+         <span class="code-badge new">${ch.after} ${ch.afterName}</span>
+       </div>`
+    ).join('');
 
     return `
       <div class="timeline-item" style="--i:${i}">

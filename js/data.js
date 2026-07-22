@@ -53,6 +53,30 @@ const CHANGE_EVENTS = [
     impact: { sido: null, sigungu: 4, eupmyeondong: null },
     tags: ['구 신설', '행정동 재편'],
     sidoChange: null
+  },
+  {
+    id: 'jeonnam-gwangju',
+    date: '2026-07-01',
+    dateLabel: '2026.07.01',
+    title: '광주·전남 → 전남광주통합특별시',
+    description: '광주광역시와 전라남도가 통합되어 전남광주통합특별시가 출범했습니다. 시도코드 29·46이 함께 폐지되고 12가 신설되었으며, 27개 시군구 코드가 「시·구·군」 순서로 전면 재부여되었습니다.',
+    impact: { sido: 2, sigungu: 27, eupmyeondong: 3204 },
+    tags: ['시도 통합', '시도코드 변경', '코드 전면 재부여'],
+    // 두 시도가 하나로 합쳐지는 첫 사례라 변경 줄이 2개다
+    sidoChanges: [
+      { before: '29', beforeName: '광주광역시', after: '12', afterName: '전남광주통합특별시' },
+      { before: '46', beforeName: '전라남도', after: '12', afterName: '전남광주통합특별시' }
+    ]
+  },
+  {
+    id: 'incheon',
+    date: '2026-07-01',
+    dateLabel: '2026.07.01',
+    title: '인천시 자치구 재편',
+    description: '인천광역시 중구·동구·서구가 폐지되고 제물포구·영종구·서해구·검단구 4개 자치구가 신설되었습니다.',
+    impact: { sido: null, sigungu: 4, eupmyeondong: 83 },
+    tags: ['자치구 신설', '자치구 폐지'],
+    sidoChange: null
   }
 ];
 
@@ -120,6 +144,25 @@ const SIDO_CODE_SNAPSHOTS = {
     { code: '50', name: '제주특별자치도' },
     { code: '51', name: '강원특별자치도' },
     { code: '52', name: '전북특별자치도' }
+  ],
+  // 2026.07.01 이후 (광주=29·전남=46 폐지 → 전남광주통합특별시=12). 17개 → 16개
+  '202607': [
+    { code: '11', name: '서울특별시' },
+    { code: '12', name: '전남광주통합특별시' },
+    { code: '26', name: '부산광역시' },
+    { code: '27', name: '대구광역시' },
+    { code: '28', name: '인천광역시' },
+    { code: '30', name: '대전광역시' },
+    { code: '31', name: '울산광역시' },
+    { code: '36', name: '세종특별자치시' },
+    { code: '41', name: '경기도' },
+    { code: '43', name: '충청북도' },
+    { code: '44', name: '충청남도' },
+    { code: '47', name: '경상북도' },
+    { code: '48', name: '경상남도' },
+    { code: '50', name: '제주특별자치도' },
+    { code: '51', name: '강원특별자치도' },
+    { code: '52', name: '전북특별자치도' }
   ]
 };
 
@@ -132,9 +175,12 @@ function getSidoCodesAt(yyyymm) {
   } else if (n < 202401) {
     // 2023.07 ~ 2023.12: 강원특별자치도=51, 전라북도=45
     return SIDO_CODE_SNAPSHOTS['202307'];
-  } else {
-    // 2024.01 이후: 강원특별자치도=51, 전북특별자치도=52
+  } else if (n < 202607) {
+    // 2024.01 ~ 2026.06: 강원특별자치도=51, 전북특별자치도=52
     return SIDO_CODE_SNAPSHOTS['202402'];
+  } else {
+    // 2026.07 이후: 광주(29)·전남(46) 폐지, 전남광주통합특별시=12 (7.1 시행)
+    return SIDO_CODE_SNAPSHOTS['202607'];
   }
 }
 
