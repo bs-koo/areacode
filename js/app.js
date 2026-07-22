@@ -43,7 +43,11 @@ function renderTimeline() {
   const container = document.getElementById('timeline-container');
   if (!container) return;
 
-  container.innerHTML = CHANGE_EVENTS.map((ev, i) => {
+  // 최신 변경이 가장 자주 찾는 정보이므로 최신순으로 보여준다.
+  // CHANGE_EVENTS 자체는 시간 오름차순을 전제하는 곳이 있어 복사본을 뒤집는다.
+  const events = [...CHANGE_EVENTS].reverse();
+
+  container.innerHTML = events.map((ev, i) => {
     const impactParts = [];
     if (ev.impact.sido) impactParts.push(`시도 ${ev.impact.sido}개`);
     if (ev.impact.sigungu) impactParts.push(`시군구 ${ev.impact.sigungu}개`);
