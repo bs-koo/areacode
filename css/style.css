@@ -635,6 +635,24 @@ td.code-cell.is-changed { border-left: 2px solid var(--diff-line); }
   font-weight: 700;
 }
 
+/* 역방향(최근→과거) 변환 안내.
+   앰버는 "바뀐 자릿수" 전용이므로 여기서는 쓰지 않고 파랑 계열로 정보성만 전달한다. */
+.direction-notice {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: var(--primary-lighter);
+  border: 1px solid var(--primary-light);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius-sm);
+  font-size: .85rem;
+  color: var(--primary-dark);
+}
+.direction-notice span { color: var(--gray-600); }
+
 .event-block {
   margin-bottom: 14px;
   background: #fff;
