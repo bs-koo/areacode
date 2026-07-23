@@ -13,9 +13,11 @@
 
 <header class="site-header">
   <div class="header-inner">
-    <h1>행정구역코드 변환 도구</h1>
+    <div class="header-top">
+      <h1>행정구역코드 변환 도구</h1>
+      <span class="header-badge">변경 이력 2023~2026</span>
+    </div>
     <p class="subtitle">행정구역 변경 이력 조회 &amp; 코드 변환 &amp; 변환 코드 생성</p>
-    <span class="header-badge">변경 이력 2023~2026</span>
   </div>
 </header>
 
@@ -47,6 +49,7 @@
     <div class="section-heading">
       <h2>행정구역 변경 이력</h2>
       <p>주요 행정구역 변경 사항을 최근 시행순으로 확인합니다.</p>
+      <p class="data-source">데이터 출처: 행정안전부·국토교통부 공개데이터 · 기준일 2026.06.30</p>
     </div>
     <div class="timeline" id="timeline-container">
       <!-- JS로 렌더링 -->
@@ -58,6 +61,7 @@
     <div class="section-heading">
       <h2>시도코드 조회</h2>
       <p>특정 시점에 유효한 시도코드와 시도명을 조회합니다. 변경된 항목은 하이라이트됩니다.</p>
+      <p class="data-source">데이터 출처: 행정안전부 시도코드 고시자료 · 기준일 2026.06.30</p>
     </div>
 
     <div class="query-form">
@@ -69,12 +73,15 @@
         <label for="sido-search">지역 검색</label>
         <div class="search-box-inline">
           <input type="text" id="sido-search" class="form-control search-input" placeholder="시도코드 또는 시도명">
-          <span class="search-icon">&#128269;</span>
+          <span class="search-icon" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </span>
         </div>
       </div>
       <button class="query-btn" id="sido-query-btn">조회</button>
     </div>
 
+    <span class="sr-only" role="status" aria-live="polite" id="sido-result-summary"></span>
     <div class="result-container" id="sido-result"></div>
   </section>
 
@@ -83,6 +90,7 @@
     <div class="section-heading">
       <h2>지역코드 변환</h2>
       <p>두 시점 사이에 변경된 행정구역코드 매핑을 확인하고, 변환 코드를 생성합니다. From을 To보다 나중으로 입력하면 최근 → 과거 방향으로 되돌리는 변환이 됩니다.</p>
+      <p class="data-source">데이터 출처: 행정안전부·국토교통부 변경이력 데이터 · 기준일 2026.06.30</p>
     </div>
 
     <div class="query-form">
@@ -100,6 +108,7 @@
       </div>
     </div>
 
+    <span class="sr-only" role="status" aria-live="polite" id="convert-result-summary"></span>
     <div class="result-container" id="convert-result"></div>
 
     <!-- 코드 생성 섹션 (변환 결과 있을 때만 표시) -->
@@ -167,6 +176,7 @@
       </div>
       <button class="query-btn" id="bjd-search-btn">검색</button>
     </div>
+    <span class="sr-only" role="status" aria-live="polite" id="bjd-result-summary"></span>
     <div class="result-container" id="bjd-result"></div>
   </section>
 

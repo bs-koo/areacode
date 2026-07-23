@@ -47,7 +47,7 @@ function renderTimeline() {
   // CHANGE_EVENTS 자체는 시간 오름차순을 전제하는 곳이 있어 복사본을 뒤집는다.
   const events = [...CHANGE_EVENTS].reverse();
 
-  container.innerHTML = events.map((ev, i) => {
+  container.innerHTML = events.map((ev) => {
     const impactParts = [];
     if (ev.impact.sido) impactParts.push(`시도 ${ev.impact.sido}개`);
     if (ev.impact.sigungu) impactParts.push(`시군구 ${ev.impact.sigungu}개`);
@@ -67,7 +67,7 @@ function renderTimeline() {
     ).join('');
 
     return `
-      <div class="timeline-item" style="--i:${i}">
+      <div class="timeline-item">
         <div class="timeline-dot"></div>
         <div class="timeline-card">
           <div class="timeline-date">${ev.dateLabel}</div>
@@ -85,6 +85,21 @@ function renderTimeline() {
   }).join('');
 }
 
+// ---- 버튼 로딩 상태 ----
+// 데이터가 로컬이라 체감 지연이 사실상 없더라도, 최소 시간은 로딩 상태를
+// 유지해 "눌렸다"는 피드백을 보장한다 (버튼 스피너 + aria-live 결과 갱신).
+const BUTTON_LOADING_MS = 180;
+function runWithLoading(btn, callback) {
+  if (!btn || btn.dataset.loading === 'true') return;
+  btn.dataset.loading = 'true';
+  btn.disabled = true;
+  setTimeout(() => {
+    callback();
+    btn.dataset.loading = 'false';
+    btn.disabled = false;
+  }, BUTTON_LOADING_MS);
+}
+
 // ---- 섹션 2: 시도코드 조회 ----
 function initSidoSection() {
   const input = document.getElementById('sido-yyyymm');
@@ -98,26 +113,22 @@ function initSidoSection() {
 
   const searchInput = document.getElementById('sido-search');
 
-  btn.addEventListener('click', () => {
+  const doQuery = () => runWithLoading(btn, () => {
     querySido(input, resultDiv);
     applySidoFilter();
   });
+
+  btn.addEventListener('click', doQuery);
   input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      querySido(input, resultDiv);
-      applySidoFilter();
-    }
+    if (e.key === 'Enter') doQuery();
   });
   if (searchInput) {
     searchInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        querySido(input, resultDiv);
-        applySidoFilter();
-      }
+      if (e.key === 'Enter') doQuery();
     });
   }
 
-  // 초기 렌더링
+  // 초기 렌더링(버튼 클릭이 아니므로 로딩 상태 없이 즉시 표시)
   querySido(input, resultDiv);
 }
 
@@ -213,6 +224,8 @@ function querySido(input, resultDiv) {
       <span class="legend-item abolished">폐지</span>
     </div>`;
 
+  updateResultSummary('sido-result-summary', `${raw.substring(0,4)}년 ${raw.substring(4,6)}월 기준 시도코드 ${codes.length}건 조회됨`);
+
   // 조회 후 검색 필터 적용
   applySidoFilter();
 }
@@ -234,9 +247,11 @@ function initConvertSection() {
   fromInput.value = '202306';
   toInput.value = '202602';
 
-  btn.addEventListener('click', () => runConvert(fromInput, toInput));
-  fromInput.addEventListener('keydown', e => { if (e.key === 'Enter') runConvert(fromInput, toInput); });
-  toInput.addEventListener('keydown', e => { if (e.key === 'Enter') runConvert(fromInput, toInput); });
+  const doConvert = () => runWithLoading(btn, () => runConvert(fromInput, toInput));
+
+  btn.addEventListener('click', doConvert);
+  fromInput.addEventListener('keydown', e => { if (e.key === 'Enter') doConvert(); });
+  toInput.addEventListener('keydown', e => { if (e.key === 'Enter') doConvert(); });
 
   // 언어 탭 전환
   document.querySelectorAll('.lang-tab').forEach(tab => {
@@ -285,6 +300,7 @@ function runConvert(fromInput, toInput) {
       <p><strong>${formatYM(from)}</strong>과 <strong>${formatYM(to)}</strong> 사이에 변경된 행정구역코드가 없습니다.</p>
     </div>`;
     codeSection.style.display = 'none';
+    updateResultSummary('convert-result-summary', `${formatYM(from)}과 ${formatYM(to)} 사이 변경된 행정구역코드 없음`);
     return;
   }
 
@@ -310,11 +326,11 @@ function runConvert(fromInput, toInput) {
       const changed = m.before.length === m.after.length && m.before !== m.after;
       const cellClass = changed ? 'code-cell is-changed' : 'code-cell';
       return `<tr>
-        <td class="code-cell"><code>${markDigitDiff(m.before, m.after)}</code></td>
-        <td>${escapeHtml(m.beforeName)}</td>
-        <td class="arrow-cell">→</td>
-        <td class="${cellClass}"><code>${markDigitDiff(m.after, m.before)}</code></td>
-        <td>${escapeHtml(m.afterName)}</td>
+        <td class="code-cell" data-label="변환 전 코드"><span class="cell-value"><code>${markDigitDiff(m.before, m.after)}</code></span></td>
+        <td data-label="변환 전 명칭"><span class="cell-value">${escapeHtml(m.beforeName)}</span></td>
+        <td class="arrow-cell" aria-hidden="true">→</td>
+        <td class="${cellClass}" data-label="변환 후 코드"><span class="cell-value"><code>${markDigitDiff(m.after, m.before)}</code></span></td>
+        <td data-label="변환 후 명칭"><span class="cell-value">${escapeHtml(m.afterName)}</span></td>
       </tr>`;
     }).join('');
 
@@ -351,6 +367,8 @@ function runConvert(fromInput, toInput) {
 
   resultDiv.innerHTML = directionNotice + html;
   codeSection.style.display = 'block';
+
+  updateResultSummary('convert-result-summary', `${formatYM(from)}에서 ${formatYM(to)}로 변환, 이벤트 ${events.length}건, 총 ${allMappings.length}건 매핑 조회됨`);
 
   // 이벤트 블록 접기/펼치기
   resultDiv.querySelectorAll('.event-header').forEach(header => {
@@ -508,12 +526,14 @@ function initBjdSection() {
   const yyyymmInput = document.getElementById('bjd-yyyymm');
   const resultDiv = document.getElementById('bjd-result');
 
-  searchBtn.addEventListener('click', () => searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv));
+  const doSearch = () => runWithLoading(searchBtn, () => searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv));
+
+  searchBtn.addEventListener('click', doSearch);
   keywordInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv);
+    if (e.key === 'Enter') doSearch();
   });
   yyyymmInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') searchBjd(keywordInput, checkbox, filterSelect, yyyymmInput, resultDiv);
+    if (e.key === 'Enter') doSearch();
   });
 }
 
@@ -652,15 +672,16 @@ function renderBjdPage(resultDiv) {
 
   const rows = pageData.map(row => {
     const rowClass = row[5] !== '' ? ' class="row-abolished"' : '';
+    const dash = '<span class="cell-dash">–</span>';
     return `<tr${rowClass}>
-      <td><code>${row[0]}</code></td>
-      <td>${highlightMatch(row[1], bjdKeyword)}</td>
-      <td>${highlightMatch(row[2], bjdKeyword)}</td>
-      <td>${highlightMatch(row[3], bjdKeyword)}</td>
-      <td>${highlightMatch(row[4], bjdKeyword)}</td>
-      <td>${row[6] || ''}</td>
-      <td>${row[5] || ''}</td>
-      <td>${row[7] ? `<code>${row[7]}</code>` : ''}</td>
+      <td data-label="법정동코드"><span class="cell-value"><code>${row[0]}</code></span></td>
+      <td data-label="시도명"><span class="cell-value">${highlightMatch(row[1], bjdKeyword)}</span></td>
+      <td data-label="시군구명"><span class="cell-value">${highlightMatch(row[2], bjdKeyword)}</span></td>
+      <td data-label="읍면동명"><span class="cell-value">${highlightMatch(row[3], bjdKeyword)}</span></td>
+      <td data-label="리명"><span class="cell-value">${row[4] ? highlightMatch(row[4], bjdKeyword) : dash}</span></td>
+      <td data-label="생성일"><span class="cell-value">${row[6] || dash}</span></td>
+      <td data-label="삭제일"><span class="cell-value">${row[5] || dash}</span></td>
+      <td data-label="과거법정동코드"><span class="cell-value">${row[7] ? `<code>${row[7]}</code>` : dash}</span></td>
     </tr>`;
   }).join('');
 
@@ -698,6 +719,8 @@ function renderBjdPage(resultDiv) {
       </table>
     </div>
     ${paginationHtml}`;
+
+  updateResultSummary('bjd-result-summary', `${totalCount}건 검색됨`);
 
   // 이벤트 바인딩: 페이지 크기 변경
   const pageSizeSelect = document.getElementById('bjd-page-size');
@@ -764,7 +787,14 @@ function markDigitDiff(text, other) {
 }
 
 function showError(container, msg) {
-  container.innerHTML = `<div class="error-msg">${msg}</div>`;
+  container.innerHTML = `<div class="error-msg" role="alert">${msg}</div>`;
+}
+
+// 결과 표 전체가 aria-live라 스크린리더가 표 전체를 낭독하는 것을 막기 위해,
+// 표는 aria-live 밖에 두고 이 sr-only 요약 리전의 텍스트만 갱신해 낭독시킨다.
+function updateResultSummary(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
 }
 
 // ---- 초기화 ----
